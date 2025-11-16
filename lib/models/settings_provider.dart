@@ -65,6 +65,7 @@ class SettingsProvider extends ChangeNotifier {
       AppConstants.shortBreakDuration.toDouble(); // 5 minutos
   double _longBreakDuration =
       AppConstants.longBreakDuration.toDouble(); // 15 minutos
+  int _pomodorosBeforeLongBreak = AppConstants.pomodorosBeforeLongBreak; // 4 ciclos
 
   // ─────────────────────────────────────────────────────────────────────────────────
   // CONFIGURACIONES DE NOTIFICACIONES
@@ -81,6 +82,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _autoStartBreaks = false; // ¿Iniciar descanso automáticamente?
   bool _autoStartPomodoros = false; // ¿Iniciar siguiente pomodoro automáticamente?
   bool _keepScreenOn = false; // ¿Mantener pantalla encendida?
+  bool _appLockMode = false; // ¿Bloquear aplicación durante pomodoro?
 
   // ─────────────────────────────────────────────────────────────────────────────────
   // CONFIGURACIONES DE SONIDO
@@ -121,6 +123,7 @@ class SettingsProvider extends ChangeNotifier {
   double get focusDuration => _focusDuration;
   double get shortBreakDuration => _shortBreakDuration;
   double get longBreakDuration => _longBreakDuration;
+  int get pomodorosBeforeLongBreak => _pomodorosBeforeLongBreak;
 
   // ─── Tiempos en segundos (para el timer) ───
   // Convertimos minutos a segundos multiplicando por 60
@@ -138,6 +141,7 @@ class SettingsProvider extends ChangeNotifier {
   bool get autoStartBreaks => _autoStartBreaks;
   bool get autoStartPomodoros => _autoStartPomodoros;
   bool get keepScreenOn => _keepScreenOn;
+  bool get appLockMode => _appLockMode;
 
   // ─── Sonido ───
   String get selectedSound => _selectedSound;
@@ -186,6 +190,12 @@ class SettingsProvider extends ChangeNotifier {
 
   void setLongBreakDuration(double value) {
     _longBreakDuration = value;
+    _saveSettings(); // Guarda automáticamente
+    notifyListeners();
+  }
+
+  void setPomodorosBeforeLongBreak(int value) {
+    _pomodorosBeforeLongBreak = value;
     _saveSettings(); // Guarda automáticamente
     notifyListeners();
   }
@@ -242,6 +252,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setAppLockMode(bool value) {
+    _appLockMode = value;
+    _saveSettings(); // Guarda automáticamente
+    notifyListeners();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────────
   // SETTERS DE SONIDO
   // ─────────────────────────────────────────────────────────────────────────────────
@@ -283,6 +299,7 @@ class SettingsProvider extends ChangeNotifier {
     _focusDuration = AppConstants.focusDuration.toDouble();
     _shortBreakDuration = AppConstants.shortBreakDuration.toDouble();
     _longBreakDuration = AppConstants.longBreakDuration.toDouble();
+    _pomodorosBeforeLongBreak = AppConstants.pomodorosBeforeLongBreak;
 
     // Notificaciones
     _notificationsEnabled = true;
@@ -293,6 +310,7 @@ class SettingsProvider extends ChangeNotifier {
     _autoStartBreaks = false;
     _autoStartPomodoros = false;
     _keepScreenOn = false;
+    _appLockMode = false;
 
     // Sonido
     _selectedSound = 'Ninguno';
@@ -323,6 +341,8 @@ class SettingsProvider extends ChangeNotifier {
           AppConstants.shortBreakDuration.toDouble();
       _longBreakDuration = prefs.getDouble('longBreakDuration') ??
           AppConstants.longBreakDuration.toDouble();
+      _pomodorosBeforeLongBreak = prefs.getInt('pomodorosBeforeLongBreak') ??
+          AppConstants.pomodorosBeforeLongBreak;
 
       // Cargar configuraciones de notificaciones
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
@@ -333,6 +353,7 @@ class SettingsProvider extends ChangeNotifier {
       _autoStartBreaks = prefs.getBool('autoStartBreaks') ?? false;
       _autoStartPomodoros = prefs.getBool('autoStartPomodoros') ?? false;
       _keepScreenOn = prefs.getBool('keepScreenOn') ?? false;
+      _appLockMode = prefs.getBool('appLockMode') ?? false;
 
       // Cargar configuraciones de sonido
       _selectedSound = prefs.getString('selectedSound') ?? 'Ninguno';
@@ -358,6 +379,7 @@ class SettingsProvider extends ChangeNotifier {
       await prefs.setDouble('focusDuration', _focusDuration);
       await prefs.setDouble('shortBreakDuration', _shortBreakDuration);
       await prefs.setDouble('longBreakDuration', _longBreakDuration);
+      await prefs.setInt('pomodorosBeforeLongBreak', _pomodorosBeforeLongBreak);
 
       // Guardar notificaciones
       await prefs.setBool('notificationsEnabled', _notificationsEnabled);
@@ -368,6 +390,7 @@ class SettingsProvider extends ChangeNotifier {
       await prefs.setBool('autoStartBreaks', _autoStartBreaks);
       await prefs.setBool('autoStartPomodoros', _autoStartPomodoros);
       await prefs.setBool('keepScreenOn', _keepScreenOn);
+      await prefs.setBool('appLockMode', _appLockMode);
 
       // Guardar sonido
       await prefs.setString('selectedSound', _selectedSound);

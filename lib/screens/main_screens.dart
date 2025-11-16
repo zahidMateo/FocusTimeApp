@@ -3,6 +3,7 @@ import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/screens/settings_screens.dart';
 import 'package:pomodoro_app/screens/timer_screen.dart';
+import 'package:pomodoro_app/screens/tasks_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 // MAIN SCREEN - PANTALLA PRINCIPAL CON NAVEGACIÓN
@@ -65,8 +66,7 @@ class _MainScreenState extends State<MainScreen> {
     _PlaceholderScreen(
         title: 'Estadísticas',
         icon: Icons.bar_chart), // [1] Stats - Por implementar
-    _PlaceholderScreen(
-        title: 'Tareas', icon: Icons.list), // [2] Tareas - Por implementar
+    TasksScreen(), // [2] Tareas - Gestión de tareas diarias
     SettingsScreen(), // [3] Configuración - Pantalla de ajustes
   ];
 

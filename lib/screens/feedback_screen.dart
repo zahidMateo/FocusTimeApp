@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
@@ -20,7 +21,6 @@ class FeedbackScreen extends StatefulWidget {
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
   final TextEditingController _feedbackController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   String _selectedCategory = 'Sugerencia';
 
   final List<String> _categories = [
@@ -33,11 +33,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   void dispose() {
     _feedbackController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
-  void _submitFeedback() {
+  void _submitFeedback() async {
     if (_feedbackController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -48,20 +47,56 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       return;
     }
 
-    // TODO: Aquí implementarías el envío real del comentario
-    // Por ejemplo, enviar a un servidor, correo electrónico, etc.
+    // Preparar el email
+    final String emailAddress = 'mmales76@gmail.com';
+    final String subject = 'Comentario - Pomodoro App ($_selectedCategory)';
+    final String body = '''
+Categoría: $_selectedCategory
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ Gracias por tu comentario'),
-        backgroundColor: AppColors.primary,
-      ),
+Comentario:
+${_feedbackController.text.trim()}
+''';
+
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: emailAddress,
+      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
-    // Limpiar y volver
-    _feedbackController.clear();
-    _emailController.clear();
-    Navigator.of(context).pop();
+    try {
+      final bool launched = await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (launched) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Abriendo email...'),
+              backgroundColor: AppColors.sky,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Limpiar y volver
+          _feedbackController.clear();
+          Navigator.of(context).pop();
+        }
+      } else {
+        throw 'No se pudo abrir el cliente de email';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo abrir email'),
+            backgroundColor: AppColors.destructive,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -136,31 +171,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           SizedBox(height: AppConstants.paddingLarge),
 
           // ═══════════════════════════════════════════════════════════════════════════
-          // EMAIL (OPCIONAL)
-          // ═══════════════════════════════════════════════════════════════════════════
-          Text(
-            'Email (opcional)',
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppConstants.paddingSmall),
-          Card(
-            child: TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                hintText: 'tu@email.com',
-                prefixIcon: Icon(Icons.email_outlined, color: AppColors.sky),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(AppConstants.paddingMedium),
-              ),
-            ),
-          ),
-
-          SizedBox(height: AppConstants.paddingLarge),
-
-          // ═══════════════════════════════════════════════════════════════════════════
           // COMENTARIO
           // ═══════════════════════════════════════════════════════════════════════════
           Text(
@@ -192,12 +202,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             child: ElevatedButton(
               onPressed: _submitFeedback,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: AppColors.sky,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppConstants.borderRadius),
                 ),
+                elevation: 2,
               ),
               child: Text(
                 'Enviar comentario',

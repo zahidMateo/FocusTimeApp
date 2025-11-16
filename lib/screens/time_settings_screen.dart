@@ -36,6 +36,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
   late double _tempFocusDuration;
   late double _tempShortBreakDuration;
   late double _tempLongBreakDuration;
+  late int _tempPomodorosBeforeLongBreak;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
     _tempFocusDuration = settings.focusDuration;
     _tempShortBreakDuration = settings.shortBreakDuration;
     _tempLongBreakDuration = settings.longBreakDuration;
+    _tempPomodorosBeforeLongBreak = settings.pomodorosBeforeLongBreak;
   }
 
   // ═════════════════════════════════════════════════════════════════════════════════
@@ -53,14 +55,34 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
   void _saveChanges() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
-    // Si el timer está corriendo, mostrar advertencia
+    // Siempre aplicar los cambios
+    _applyChanges();
+
+    // Si el timer está corriendo, mostrar advertencia y resetear
     if (settings.isTimerRunning) {
-      _showTimerRunningWarning();
+      if (settings.onTimerReset != null) {
+        settings.onTimerReset!();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Configuración guardada. Timer reiniciado.'),
+          backgroundColor: AppColors.sky,
+          duration: Duration(seconds: 2),
+        ),
+      );
     } else {
-      // Si no está corriendo, guardar directamente
-      _applyChanges();
-      Navigator.of(context).pop(); // Volver a Settings
+      // Si no está corriendo, solo confirmar guardado
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ Configuración guardada exitosamente'),
+          backgroundColor: AppColors.sky,
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
+
+    Navigator.of(context).pop(); // Volver a Settings
   }
 
   // Aplicar los cambios al provider
@@ -69,70 +91,9 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
     settings.setFocusDuration(_tempFocusDuration);
     settings.setShortBreakDuration(_tempShortBreakDuration);
     settings.setLongBreakDuration(_tempLongBreakDuration);
+    settings.setPomodorosBeforeLongBreak(_tempPomodorosBeforeLongBreak);
   }
 
-  // Mostrar diálogo de advertencia
-  void _showTimerRunningWarning() {
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text(
-            '⏱️ Timer en ejecución',
-            style: AppTypography.heading2,
-          ),
-          content: Text(
-            'El temporizador está en ejecución. Si guardas estos cambios, el timer se reiniciará y perderás el progreso actual.\n\n¿Deseas continuar?',
-            style: AppTypography.bodyMedium,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Cerrar diálogo
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: AppColors.mutedForeground),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // 1. Aplicar los cambios
-                _applyChanges();
-
-                // 2. Resetear el timer INMEDIATAMENTE (sin addPostFrameCallback)
-                if (settings.onTimerReset != null) {
-                  settings.onTimerReset!();
-                }
-
-                // 3. Cerrar diálogo
-                Navigator.of(dialogContext).pop();
-
-                // 4. Volver a Settings
-                Navigator.of(context).pop();
-
-                // 5. Mostrar confirmación
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Configuración actualizada. Timer reiniciado.'),
-                    backgroundColor: AppColors.sky,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.destructive,
-              ),
-              child: Text('Continuar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +163,21 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                     });
                   },
                 ),
+                SizedBox(height: AppConstants.paddingXLarge),
+
+                // Slider 4: Ciclos antes del descanso largo
+                _buildCyclesSlider(
+                  label: 'Ciclos',
+                  value: _tempPomodorosBeforeLongBreak,
+                  min: 2,
+                  max: 10,
+                  divisions: 8,
+                  onChanged: (value) {
+                    setState(() {
+                      _tempPomodorosBeforeLongBreak = value;
+                    });
+                  },
+                ),
               ],
             ),
           ),
@@ -224,11 +200,20 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
               child: ElevatedButton(
                 onPressed: _saveChanges,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.sky,
+                  foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
                     vertical: AppConstants.paddingMedium,
                   ),
+                  elevation: 2,
                 ),
-                child: Text('Guardar cambios'),
+                child: Text(
+                  'Guardar cambios',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ),
@@ -298,6 +283,75 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
             max: max,
             divisions: divisions,
             onChanged: onChanged, // Simple, sin validación
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
+  // SLIDER PARA CICLOS - Similar al slider simple pero con valores int
+  // ═════════════════════════════════════════════════════════════════════════════════
+  Widget _buildCyclesSlider({
+    required String label,
+    required int value,
+    required int min,
+    required int max,
+    required int divisions,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Título y valor
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.foreground,
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+                vertical: AppConstants.paddingSmall,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.sky.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$value ciclos',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.sky,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: AppConstants.paddingSmall),
+
+        // Slider
+        SliderTheme(
+          data: SliderThemeData(
+            activeTrackColor: AppColors.sky,
+            inactiveTrackColor: AppColors.muted,
+            thumbColor: AppColors.sky,
+            overlayColor: AppColors.sky.withOpacity(0.2),
+            trackHeight: 4,
+          ),
+          child: Slider(
+            value: value.toDouble(),
+            min: min.toDouble(),
+            max: max.toDouble(),
+            divisions: divisions,
+            onChanged: (double newValue) {
+              onChanged(newValue.toInt());
+            },
           ),
         ),
       ],

@@ -77,26 +77,6 @@ class ContactScreen extends StatelessWidget {
           SizedBox(height: AppConstants.paddingSmall),
 
           // ═══════════════════════════════════════════════════════════════════════════
-          // SITIO WEB
-          // ═══════════════════════════════════════════════════════════════════════════
-          _buildContactCard(
-            icon: Icons.language,
-            title: 'Sitio web',
-            subtitle: websiteUrl,
-            onTap: () {
-              // TODO: Abrir navegador
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('URL copiada: $websiteUrl'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
-            },
-          ),
-
-          SizedBox(height: AppConstants.paddingSmall),
-
-          // ═══════════════════════════════════════════════════════════════════════════
           // TWITTER/X
           // ═══════════════════════════════════════════════════════════════════════════
           _buildContactCard(
@@ -108,26 +88,6 @@ class ContactScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Twitter: $twitterHandle'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
-            },
-          ),
-
-          SizedBox(height: AppConstants.paddingSmall),
-
-          // ═══════════════════════════════════════════════════════════════════════════
-          // GITHUB
-          // ═══════════════════════════════════════════════════════════════════════════
-          _buildContactCard(
-            icon: Icons.code,
-            title: 'GitHub',
-            subtitle: githubUrl,
-            onTap: () {
-              // TODO: Abrir GitHub
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('GitHub: $githubUrl'),
                   backgroundColor: AppColors.primary,
                 ),
               );

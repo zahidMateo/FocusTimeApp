@@ -172,10 +172,17 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('⚠️ Timer en ejecución'),
-        content: Text(
-          'El timer está corriendo. Si guardas estos cambios, se reiniciará. ¿Deseas continuar?',
+        title: Text(
+          '⚠️ Timer en ejecución',
+          textAlign: TextAlign.center,
+          style: AppTypography.heading2,
         ),
+        content: Text(
+          'El timer está corriendo. Si guardas estos cambios, se reiniciará.\n\n¿Deseas continuar?',
+          textAlign: TextAlign.center,
+          style: AppTypography.bodyMedium,
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -187,7 +194,10 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
               _applyChangesAndReset();
               Navigator.of(context).pop();
             },
-            child: Text('Guardar y reiniciar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.sky,
+            ),
+            child: Text('Guardar'),
           ),
         ],
       ),

@@ -38,31 +38,31 @@ class AboutScreen extends StatelessWidget {
           // ═══════════════════════════════════════════════════════════════════════════
           // LOGO Y NOMBRE DE LA APP
           // ═══════════════════════════════════════════════════════════════════════════
-          SizedBox(height: AppConstants.paddingXLarge),
+          SizedBox(height: AppConstants.paddingMedium),
           Center(
             child: Column(
               children: [
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
                     color: AppColors.sky.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.timer,
-                    size: 50,
+                    size: 40,
                     color: AppColors.sky,
                   ),
                 ),
-                SizedBox(height: AppConstants.paddingMedium),
+                SizedBox(height: AppConstants.paddingSmall),
                 Text(
                   'Pomodoro Timer',
                   style: AppTypography.heading1.copyWith(
                     color: AppColors.foreground,
                   ),
                 ),
-                SizedBox(height: AppConstants.paddingSmall),
+                SizedBox(height: 4),
                 Text(
                   'Administra tu tiempo de manera efectiva',
                   style: AppTypography.bodyMedium.copyWith(
@@ -73,7 +73,7 @@ class AboutScreen extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: AppConstants.paddingLarge),
+          SizedBox(height: AppConstants.paddingMedium),
 
           // ═══════════════════════════════════════════════════════════════════════════
           // VERSIÓN (solo muestra texto, no navega)
@@ -94,7 +94,7 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 8),
+          SizedBox(height: 4),
 
           // ═══════════════════════════════════════════════════════════════════════════
           // COMENTARIOS (navega a pantalla de comentarios)
@@ -123,7 +123,7 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: AppConstants.paddingSmall),
+          SizedBox(height: 4),
 
           // ═══════════════════════════════════════════════════════════════════════════
           // CONTACTO (navega a pantalla de contacto)
@@ -152,7 +152,7 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: AppConstants.paddingXLarge * 2),
+          SizedBox(height: AppConstants.paddingLarge),
 
           // ═══════════════════════════════════════════════════════════════════════════
           // FOOTER
@@ -167,7 +167,7 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: AppConstants.paddingXLarge),
+          SizedBox(height: AppConstants.paddingMedium),
         ],
       ),
     );

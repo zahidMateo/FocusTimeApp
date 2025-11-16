@@ -85,6 +85,9 @@ class SettingsScreen extends StatelessWidget {
               _buildSectionHeader('🔊 Sonido'),
               _buildSoundCard(context, settings),
               SizedBox(height: AppConstants.paddingLarge),
+              _buildSectionHeader('🔒 Modo Concentración'),
+              _buildBehaviorCard(context, settings),
+              SizedBox(height: AppConstants.paddingLarge),
               _buildSectionHeader('ℹ️ Acerca de'),
               _buildAboutCard(context, settings),
               SizedBox(height: AppConstants.paddingLarge),
@@ -428,6 +431,74 @@ class SettingsScreen extends StatelessWidget {
             Divider(height: 1),
             _buildSoundNavigationCard(context, settings),
           ],
+        ],
+      ),
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
+  // CARD DE COMPORTAMIENTO - MODO CONCENTRACIÓN
+  // ═════════════════════════════════════════════════════════════════════════════════
+  Widget _buildBehaviorCard(BuildContext context, SettingsProvider settings) {
+    return Card(
+      child: Column(
+        children: [
+          _buildSwitchTile(
+            title: 'Bloqueo de aplicación',
+            subtitle: 'Bloquea la salida de la app durante el pomodoro',
+            value: settings.appLockMode,
+            onChanged: (value) {
+              if (value) {
+                // Mostrar advertencia antes de activar
+                showDialog(
+                  context: context,
+                  builder: (BuildContext dialogContext) {
+                    return AlertDialog(
+                      title: Text(
+                        '🔒 Modo Concentración',
+                        style: AppTypography.heading2,
+                        textAlign: TextAlign.center,
+                      ),
+                      content: Text(
+                        'Al activar este modo, no podrás salir de la aplicación mientras el pomodoro esté en ejecución.\n\nEsto te ayudará a mantener el enfoque total.\n\n¿Deseas activarlo?',
+                        style: AppTypography.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      actionsAlignment: MainAxisAlignment.spaceEvenly,
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                            _handleSettingChange(
+                              context,
+                              settings,
+                              () => settings.setAppLockMode(true),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.sky,
+                          ),
+                          child: Text('Activar'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                _handleSettingChange(
+                  context,
+                  settings,
+                  () => settings.setAppLockMode(false),
+                );
+              }
+            },
+          ),
         ],
       ),
     );

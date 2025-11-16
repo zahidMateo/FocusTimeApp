@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart'; // Para vibración directa
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 // NOTIFICATION SERVICE - SERVICIO DE NOTIFICACIONES LOCALES
@@ -36,6 +38,9 @@ class NotificationService {
   // Llamar esto en main.dart ANTES de runApp()
   static Future<void> initialize() async {
     if (_initialized) return;
+
+    // Inicializar base de datos de zonas horarias
+    tz.initializeTimeZones();
 
     // ─── Configuración para Android ───
     const AndroidInitializationSettings androidSettings =
@@ -328,5 +333,75 @@ class NotificationService {
   static Future<void> cancelTimerNotification() async {
     await _notifications.cancel(999);
     debugPrint('🗑️ Notificación del timer cancelada');
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
+  // PROGRAMAR NOTIFICACIÓN DE TAREA
+  // ═════════════════════════════════════════════════════════════════════════════════
+  /// Programa una notificación para recordar una tarea
+  /// taskId: ID único de la tarea
+  /// title: Título de la notificación
+  /// body: Cuerpo/mensaje de la notificación
+  /// scheduledTime: Hora exacta en que se debe mostrar la notificación
+  static Future<void> scheduleTaskNotification({
+    required int taskId,
+    required String title,
+    required String body,
+    required DateTime scheduledTime,
+  }) async {
+    if (!_initialized) {
+      await initialize();
+    }
+
+    // Convertir DateTime a TZDateTime
+    final scheduledDate = tz.TZDateTime.from(scheduledTime, tz.local);
+
+    // Detalles de la notificación en Android
+    const androidDetails = AndroidNotificationDetails(
+      'tasks_channel', // Canal específico para tareas
+      'Recordatorios de Tareas',
+      channelDescription: 'Notificaciones para recordar tareas programadas',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+      icon: '@mipmap/ic_launcher',
+      color: Color(0xFF7FAFD4), // Sky blue
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Programar la notificación
+    await _notifications.zonedSchedule(
+      taskId, // Usar el ID de la tarea como ID de notificación
+      title,
+      body,
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+
+    debugPrint('📅 Notificación de tarea programada para: $scheduledTime');
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
+  // CANCELAR NOTIFICACIÓN DE TAREA
+  // ═════════════════════════════════════════════════════════════════════════════════
+  /// Cancela una notificación de tarea programada
+  /// taskId: ID de la tarea cuya notificación se quiere cancelar
+  static Future<void> cancelTaskNotification(int taskId) async {
+    await _notifications.cancel(taskId);
+    debugPrint('🗑️ Notificación de tarea $taskId cancelada');
   }
 }

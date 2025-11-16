@@ -1,4 +1,4 @@
-import 'dart:async'; // Para usar Timer.periodic
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pomodoro_app/global/app_colors.dart';
@@ -7,36 +7,30 @@ import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
 import 'package:pomodoro_app/services/notification_service.dart';
 import 'package:pomodoro_app/services/audio_service.dart';
+import 'package:pomodoro_app/services/focus_mode_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
-// TIMER SCREEN - PANTALLA DEL TEMPORIZADOR POMODORO
+// TIMER SCREEN - PANTALLA DEL TEMPORIZADOR POMODORO CON CICLOS
 // ═══════════════════════════════════════════════════════════════════════════════════
 //
-// Esta es la pantalla principal de la app. Muestra un timer circular que cuenta regresiva.
+// Esta es la pantalla principal de la app. Muestra un timer circular que alterna entre
+// trabajo (pomodoro) y descansos (cortos y largos).
 //
 // CARACTERÍSTICAS:
-// - Timer circular con progreso visual
+// - Timer circular con progreso visual (aumenta en pomodoro, disminuye en descanso)
 // - Botones para play/pause y reset
 // - Contador de ciclos completados
-// - Se conecta con SettingsProvider para leer/actualizar configuraciones
-//
-// ¿POR QUÉ STATEFUL?
-// - Necesita "estado mutable": segundos restantes, si está corriendo, ciclos completados
-// - Usa Timer.periodic que se actualiza cada segundo
-// - setState() reconstruye la UI cada segundo para mostrar el tiempo actualizado
-//
-// COMPONENTES PRINCIPALES:
-// 1. Variables de estado: _remainingSeconds, _isRunning, _completedCycles, _timer
-// 2. Métodos del ciclo de vida: initState(), dispose()
-// 3. Lógica del timer: _startTimer(), _pauseTimer(), _resetTimer()
-// 4. UI: Círculo de progreso, botones, contador de ciclos
-//
-// CONEXIÓN CON SETTINGS:
-// - Lee focusDurationInSeconds del provider para inicializar el timer
-// - Registra callback onTimerReset para que Settings pueda reiniciar el timer
-// - Notifica isTimerRunning para que Settings valide cambios
+// - Manejo de ciclos: pomodoro → descanso corto → ... → descanso largo
+// - Mensajes de transición entre fases
+// - Mensaje de felicitaciones al completar todos los ciclos
 //
 // ═══════════════════════════════════════════════════════════════════════════════════
+
+enum TimerMode {
+  pomodoro,
+  shortBreak,
+  longBreak,
+}
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -47,23 +41,31 @@ class TimerScreen extends StatefulWidget {
 
 class _TimerScreenState extends State<TimerScreen> {
   // ═════════════════════════════════════════════════════════════════════════════════
-  // VARIABLES DE ESTADO - Datos que cambian durante la vida del widget
+  // VARIABLES DE ESTADO
   // ═════════════════════════════════════════════════════════════════════════════════
 
-  int _remainingSeconds = 0; // Segundos que quedan en el timer
-  int _initialSeconds = 0; // Segundos iniciales con los que empezó el timer (para calcular progreso)
-  bool _isRunning = false; // ¿El timer está corriendo?
-  int _completedCycles = 0; // Cuántos pomodoros completados en esta sesión
-  Timer? _timer; // Timer de Dart que se ejecuta cada segundo (? = puede ser null)
-  bool _audioStarted = false; // ¿El audio ambiental ya fue iniciado en esta sesión?
+  int _remainingSeconds = 0;
+  int _initialSeconds = 0;
+  bool _isRunning = false;
+  int _completedCycles = 0;
+  Timer? _timer;
+  bool _audioStarted = false;
+  TimerMode _currentMode = TimerMode.pomodoro;
 
-  // ─── GETTER CALCULADO: Progreso del círculo (0.0 a 1.0) ───
-  // Divide segundos restantes entre total INICIAL para obtener porcentaje
-  // Ejemplo: Si quedan 750 seg de 1500 seg iniciales → 750/1500 = 0.5 (50%)
-  // IMPORTANTE: Usa _initialSeconds en lugar de settings para evitar desincronización
+  // ─── GETTER: Progreso del círculo ───
+  // En pomodoro: barra AUMENTA (crece de 0 a 1)
+  // En descanso: barra DISMINUYE (decrece de 1 a 0)
   double get _progress {
-    if (_initialSeconds == 0) return 0.0; // Evitar división por cero
-    return _remainingSeconds / _initialSeconds;
+    if (_initialSeconds == 0) return 0.0;
+    final baseProgress = _remainingSeconds / _initialSeconds;
+
+    if (_currentMode == TimerMode.pomodoro) {
+      // En pomodoro: invertir para que la barra crezca
+      return 1.0 - baseProgress;
+    } else {
+      // En descanso: normal (la barra decrece)
+      return baseProgress;
+    }
   }
 
   // ═════════════════════════════════════════════════════════════════════════════════
@@ -109,6 +111,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void dispose() {
     _timer?.cancel(); // Cancela el timer activo si existe
+    FocusModeService.disableFocusMode(); // Desactivar modo concentración
     AudioService.stopImmediately(); // Detener sonido sin fade out al cerrar
     NotificationService.cancelTimerNotification(); // Cancelar notificación persistente
     final settings = Provider.of<SettingsProvider>(context, listen: false);
@@ -158,6 +161,13 @@ class _TimerScreenState extends State<TimerScreen> {
   // Timer.periodic ejecuta una función repetidamente cada X tiempo
   void _startTimer() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ACTIVAR MODO CONCENTRACIÓN SI ESTÁ HABILITADO
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (settings.appLockMode && _currentMode == TimerMode.pomodoro) {
+      FocusModeService.enableFocusMode();
+    }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // REPRODUCIR O REANUDAR SONIDO AMBIENTAL
@@ -212,6 +222,9 @@ class _TimerScreenState extends State<TimerScreen> {
   void _pauseTimer() {
     _timer?.cancel(); // ? = si _timer no es null, cancela
 
+    // Desactivar modo concentración
+    FocusModeService.disableFocusMode();
+
     // Pausar sonido ambiental
     AudioService.pause();
 
@@ -250,36 +263,24 @@ class _TimerScreenState extends State<TimerScreen> {
   // ┌───────────────────────────────────────────────────────────────────────────────┐
   // │ Timer completado - Ejecuta cuando el timer llega a 0                         │
   // └───────────────────────────────────────────────────────────────────────────────┘
-  // Aquí se muestran notificaciones, sonidos, y vibración
   void _onTimerComplete() async {
     _timer?.cancel();
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DETENER SONIDO AMBIENTAL
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Cuando el timer termina, detener el sonido ambiental que estaba sonando
-    await AudioService.stop();
+    // Desactivar modo concentración
+    await FocusModeService.disableFocusMode();
 
-    // Cancelar notificación persistente
+    await AudioService.stop();
     await NotificationService.cancelTimerNotification();
 
     setState(() {
       _isRunning = false;
-      _completedCycles++; // Incrementa ciclos completados
-      _remainingSeconds = settings.focusDurationInSeconds; // Reset para próximo
-      _initialSeconds = settings.focusDurationInSeconds; // Actualizar valor inicial para próximo ciclo
-      _audioStarted = false; // Resetear flag de audio para próximo inicio
+      _audioStarted = false;
     });
 
-    // Notificar al provider que el timer se detuvo
     settings.setTimerRunning(false);
 
-    print('¡Pomodoro completado! Ciclos: $_completedCycles');
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // MOSTRAR NOTIFICACIÓN SI ESTÁ HABILITADA
-    // ═══════════════════════════════════════════════════════════════════════════
+    // Mostrar notificación
     if (settings.notificationsEnabled) {
       try {
         await NotificationService.showPomodoroComplete(
@@ -290,6 +291,216 @@ class _TimerScreenState extends State<TimerScreen> {
         debugPrint('❌ Error al mostrar notificación: $e');
       }
     }
+
+    // Determinar siguiente fase
+    if (_currentMode == TimerMode.pomodoro) {
+      // Completamos un pomodoro
+      setState(() {
+        _completedCycles++;
+      });
+
+      // Siempre mostrar diálogo de descanso después de un pomodoro
+      _showBreakDialog();
+    } else {
+      // Completamos un descanso
+      // Verificar si completamos todos los ciclos (después del descanso largo)
+      if (_completedCycles >= settings.pomodorosBeforeLongBreak &&
+          _currentMode == TimerMode.longBreak) {
+        // Mostrar felicitaciones DESPUÉS del descanso largo
+        _showCongratulationsDialog();
+      } else {
+        // Volver a pomodoro normalmente
+        _switchToPomodoro();
+      }
+    }
+  }
+
+  // ┌───────────────────────────────────────────────────────────────────────────────┐
+  // │ Mostrar diálogo de descanso                                                  │
+  // └───────────────────────────────────────────────────────────────────────────────┘
+  void _showBreakDialog() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final isLongBreak = _completedCycles >= settings.pomodorosBeforeLongBreak;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            isLongBreak ? '¡Excelente trabajo! 🎉' : '¡Buen trabajo! ☕',
+            style: AppTypography.heading2,
+            textAlign: TextAlign.center,
+          ),
+          content: Text(
+            isLongBreak
+                ? 'Has completado $_completedCycles pomodoros. Es hora de tomar un descanso largo para recargar energías.\n\n¿Quieres comenzar tu descanso ahora?'
+                : 'Has completado un pomodoro con éxito. Es momento de tomar un breve descanso.\n\n¿Quieres comenzar tu descanso ahora?',
+            style: AppTypography.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _switchToPomodoro();
+              },
+              child: Text('Más tarde'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (isLongBreak) {
+                  _switchToLongBreak();
+                } else {
+                  _switchToShortBreak();
+                }
+                _toggleTimer();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sky,
+              ),
+              child: Text('Comenzar ahora'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ┌───────────────────────────────────────────────────────────────────────────────┐
+  // │ Mostrar diálogo de felicitaciones                                            │
+  // └───────────────────────────────────────────────────────────────────────────────┘
+  void _showCongratulationsDialog() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+
+    final quotes = [
+      {
+        'text': 'El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.',
+        'author': '— Albert Schweitzer'
+      },
+      {
+        'text': 'La única forma de hacer un gran trabajo es amar lo que haces.',
+        'author': '— Steve Jobs'
+      },
+      {
+        'text': 'El futuro pertenece a quienes creen en la belleza de sus sueños.',
+        'author': '— Eleanor Roosevelt'
+      },
+      {
+        'text': 'No cuentes los días, haz que los días cuenten.',
+        'author': '— Muhammad Ali'
+      },
+      {
+        'text': 'La disciplina es el puente entre las metas y el logro.',
+        'author': '— Jim Rohn'
+      },
+    ];
+
+    final randomQuote = (quotes..shuffle()).first;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            '🎊 ¡Felicitaciones! 🎊',
+            style: AppTypography.heading2,
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '¡Has completado ${settings.pomodorosBeforeLongBreak} pomodoros con éxito!',
+                style: AppTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: AppConstants.paddingMedium),
+              Text(
+                '"${randomQuote['text']}"',
+                style: AppTypography.bodyMedium.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: AppConstants.paddingSmall),
+              Text(
+                randomQuote['author']!,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.mutedForeground,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetAllCycles();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.sky,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppConstants.paddingLarge * 2,
+                  vertical: AppConstants.paddingMedium,
+                ),
+              ),
+              child: Text('Comenzar nueva sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ┌───────────────────────────────────────────────────────────────────────────────┐
+  // │ Cambiar a diferentes modos                                                   │
+  // └───────────────────────────────────────────────────────────────────────────────┘
+  void _switchToPomodoro() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    setState(() {
+      _currentMode = TimerMode.pomodoro;
+      _remainingSeconds = settings.focusDurationInSeconds;
+      _initialSeconds = settings.focusDurationInSeconds;
+    });
+  }
+
+  void _switchToShortBreak() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    setState(() {
+      _currentMode = TimerMode.shortBreak;
+      _remainingSeconds = settings.shortBreakDurationInSeconds;
+      _initialSeconds = settings.shortBreakDurationInSeconds;
+    });
+  }
+
+  void _switchToLongBreak() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    setState(() {
+      _currentMode = TimerMode.longBreak;
+      _remainingSeconds = settings.longBreakDurationInSeconds;
+      _initialSeconds = settings.longBreakDurationInSeconds;
+    });
+  }
+
+  void _resetAllCycles() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
+    setState(() {
+      _completedCycles = 0;
+      _currentMode = TimerMode.pomodoro;
+      _remainingSeconds = settings.focusDurationInSeconds;
+      _initialSeconds = settings.focusDurationInSeconds;
+      _isRunning = false;
+      _audioStarted = false;
+    });
+    settings.setTimerRunning(false);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -300,29 +511,90 @@ class _TimerScreenState extends State<TimerScreen> {
   Widget build(BuildContext context) {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
-        // Actualizar tiempo si está detenido
-        if (!_isRunning && _remainingSeconds == 0) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {
-              _remainingSeconds = settings.focusDurationInSeconds;
-              _initialSeconds = settings.focusDurationInSeconds; // También actualizar valor inicial
+        // Actualizar tiempo si está detenido y la configuración ha cambiado
+        if (!_isRunning) {
+          int expectedSeconds;
+          switch (_currentMode) {
+            case TimerMode.pomodoro:
+              expectedSeconds = settings.focusDurationInSeconds;
+              break;
+            case TimerMode.shortBreak:
+              expectedSeconds = settings.shortBreakDurationInSeconds;
+              break;
+            case TimerMode.longBreak:
+              expectedSeconds = settings.longBreakDurationInSeconds;
+              break;
+          }
+
+          // Si el tiempo mostrado no coincide con la configuración actual, actualizar
+          if (_initialSeconds != expectedSeconds) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _remainingSeconds = expectedSeconds;
+                _initialSeconds = expectedSeconds;
+              });
             });
-          });
+          }
         }
 
-        return Scaffold(
-          backgroundColor: AppColors.card,
-          body: SafeArea(
-            child: Column(
-              children: [
-                Spacer(flex: 2),
-                _buildCircularTimer(),
-                SizedBox(height: AppConstants.paddingXLarge * 2),
-                _buildControlButtons(),
-                SizedBox(height: AppConstants.paddingXLarge * 2),
-                _buildCycleCounter(),
-                Spacer(flex: 3),
-              ],
+        // Determinar si se debe bloquear la salida
+        final shouldBlock = settings.appLockMode &&
+                           _isRunning &&
+                           _currentMode == TimerMode.pomodoro;
+
+        return PopScope(
+          canPop: !shouldBlock,
+          onPopInvokedWithResult: (didPop, result) {
+            if (shouldBlock && !didPop) {
+              // Mostrar mensaje indicando que no se puede salir
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '🔒 El modo concentración está activo. Debes pausar el timer para poder salir.',
+                  ),
+                  duration: Duration(seconds: 3),
+                  backgroundColor: AppColors.destructive,
+                ),
+              );
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.card,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  // Indicador de modo concentración
+                  if (shouldBlock)
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: AppConstants.paddingSmall,
+                      ),
+                      color: AppColors.sky.withOpacity(0.2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.lock, size: 16, color: AppColors.sky),
+                          SizedBox(width: AppConstants.paddingSmall),
+                          Text(
+                            'Modo Concentración Activo',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.sky,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Spacer(flex: 2),
+                  _buildCircularTimer(),
+                  SizedBox(height: AppConstants.paddingXLarge * 2),
+                  _buildControlButtons(),
+                  SizedBox(height: AppConstants.paddingXLarge * 2),
+                  _buildCycleCounter(),
+                  Spacer(flex: 3),
+                ],
+              ),
             ),
           ),
         );
@@ -421,11 +693,16 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   String _getStatusText() {
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
-    if (!_isRunning && _remainingSeconds == settings.focusDurationInSeconds) {
+    if (!_isRunning && _remainingSeconds == _initialSeconds) {
       return 'Listo para comenzar';
     } else if (_isRunning) {
-      return '¡Enfócate!';
+      if (_currentMode == TimerMode.pomodoro) {
+        return '¡Enfócate!';
+      } else if (_currentMode == TimerMode.shortBreak) {
+        return 'Descanso corto';
+      } else {
+        return 'Descanso largo';
+      }
     } else {
       return 'Pausado';
     }
@@ -502,6 +779,7 @@ class _TimerScreenState extends State<TimerScreen> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildCycleCounter() {
+    final settings = Provider.of<SettingsProvider>(context, listen: false);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppConstants.paddingLarge,
@@ -525,7 +803,7 @@ class _TimerScreenState extends State<TimerScreen> {
             ),
           ),
           Text(
-            '$_completedCycles de ${AppConstants.pomodorosBeforeLongBreak}',
+            '$_completedCycles de ${settings.pomodorosBeforeLongBreak}',
             style: AppTypography.bodyMedium.copyWith(
               color: AppColors.sky,
               fontWeight: FontWeight.w600,

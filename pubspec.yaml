@@ -41,7 +41,9 @@ dependencies:
   audioplayers: ^6.1.0  # Para reproducir sonidos ambientales durante el timer
   vibration: ^2.0.0  # Para vibración más confiable
   flutter_foreground_task: ^8.12.0  # Para timer en segundo plano
-  shared_preferences: ^2.3.4  # Para guardar configuraciones persistentemente  
+  shared_preferences: ^2.3.4  # Para guardar configuraciones persistentemente
+  url_launcher: ^6.3.1  # Para abrir enlaces y emails
+  timezone: ^0.9.4  # Para programar notificaciones con zona horaria  
 
 
 dev_dependencies:
