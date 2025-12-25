@@ -1,0 +1,9 @@
+Guía de reemplazo de colores:
+
+AppColors.sky → context.colors.accent
+AppColors.card → context.colors.cardBackground
+AppColors.mutedForeground → context.colors.textSecondary
+AppColors.foreground → context.colors.textPrimary
+AppColors.border → context.colors.borderColor
+AppColors.destructive → context.colors.destructive
+AppColors.muted → context.colors.borderColor.withOpacity(0.3)

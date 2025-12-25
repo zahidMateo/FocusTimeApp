@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
+import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/screens/time_settings_screen.dart';
 import 'package:pomodoro_app/screens/sound_settings_screen.dart';
+import 'package:pomodoro_app/screens/theme_settings_screen.dart';
 import 'package:pomodoro_app/screens/about_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
@@ -65,10 +68,10 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SettingsProvider>(
-      builder: (context, settings, child) {
+    return Consumer2<SettingsProvider, RewardsProvider>(
+      builder: (context, settings, rewards, child) {
         return Scaffold(
-          backgroundColor: AppColors.card,
+          backgroundColor: context.colors.cardBackground,
           appBar: AppBar(
             title: Text('Configuración'),
             centerTitle: true,
@@ -85,8 +88,11 @@ class SettingsScreen extends StatelessWidget {
               _buildSectionHeader('🔊 Sonido'),
               _buildSoundCard(context, settings),
               SizedBox(height: AppConstants.paddingLarge),
+              _buildSectionHeader('🌙 Apariencia'),
+              _buildAppearanceCard(context, settings, rewards),
+              SizedBox(height: AppConstants.paddingLarge),
               _buildSectionHeader('🔒 Modo Concentración'),
-              _buildBehaviorCard(context, settings),
+              _buildBehaviorCard(context, settings, rewards),
               SizedBox(height: AppConstants.paddingLarge),
               _buildSectionHeader('ℹ️ Acerca de'),
               _buildAboutCard(context, settings),
@@ -121,19 +127,19 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildTimeNavigationCard(BuildContext context, SettingsProvider settings) {
     return Card(
       child: ListTile(
-        leading: Icon(Icons.timer, color: AppColors.sky),
+        leading: Icon(Icons.timer, color: context.colors.accent),
         title: Text(
           'Configurar duraciones',
           style: AppTypography.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.foreground,
+            color: context.colors.textPrimary,
           ),
         ),
         subtitle: Text(
           'Trabajo: ${settings.focusDuration.toInt()}m  •  Descanso: ${settings.shortBreakDuration.toInt()}m / ${settings.longBreakDuration.toInt()}m',
           style: AppTypography.bodySmall,
         ),
-        trailing: Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+        trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
         onTap: () {
           // Navegar a la pantalla de configuración de tiempos
           Navigator.of(context).push(
@@ -155,19 +161,19 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildSoundNavigationCard(BuildContext context, SettingsProvider settings) {
     return Card(
       child: ListTile(
-        leading: Icon(Icons.music_note, color: AppColors.sky),
+        leading: Icon(Icons.music_note, color: context.colors.accent),
         title: Text(
           'Sonidos ambientales',
           style: AppTypography.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.foreground,
+            color: context.colors.textPrimary,
           ),
         ),
         subtitle: Text(
           'Actual: ${settings.selectedSound}  •  Volumen: ${(settings.soundVolume * 100).toInt()}%',
           style: AppTypography.bodySmall,
         ),
-        trailing: Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+        trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
         onTap: () {
           // Navegar a la pantalla de configuración de sonidos
           Navigator.of(context).push(
@@ -291,13 +297,13 @@ class SettingsScreen extends StatelessWidget {
                     vertical: AppConstants.paddingSmall,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.sky.withOpacity(0.2),
+                    color: context.colors.accent.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '${tempValue.toInt()} min',
                     style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.sky,
+                      color: context.colors.accent,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -352,7 +358,7 @@ class SettingsScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Configuración actualizada. Timer reiniciado.'),
-                            backgroundColor: AppColors.sky,
+                            backgroundColor: context.colors.accent,
                             duration: Duration(seconds: 2),
                           ),
                         );
@@ -379,6 +385,7 @@ class SettingsScreen extends StatelessWidget {
       child: Column(
         children: [
           _buildSwitchTile(
+            context,
             title: 'Activar notificaciones',
             subtitle: 'Recibir alertas al terminar ciclos',
             value: settings.notificationsEnabled,
@@ -392,6 +399,7 @@ class SettingsScreen extends StatelessWidget {
           ),
           Divider(height: 1),
           _buildSwitchTile(
+            context,
             title: 'Vibración',
             subtitle: 'Vibrar al terminar',
             value: settings.vibrationEnabled,
@@ -414,6 +422,7 @@ class SettingsScreen extends StatelessWidget {
       child: Column(
         children: [
           _buildSwitchTile(
+            context,
             title: 'Sonidos ambientales',
             subtitle: 'Reproducir sonidos mientras el timer está activo',
             value: settings.soundEnabled,
@@ -437,13 +446,67 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ═════════════════════════════════════════════════════════════════════════════════
-  // CARD DE COMPORTAMIENTO - MODO CONCENTRACIÓN
+  // CARD DE APARIENCIA - TEMA OSCURO Y COLORES
   // ═════════════════════════════════════════════════════════════════════════════════
-  Widget _buildBehaviorCard(BuildContext context, SettingsProvider settings) {
+  Widget _buildAppearanceCard(BuildContext context, SettingsProvider settings, RewardsProvider rewards) {
+    final darkModeUnlocked = rewards.isItemPurchased('dark_mode');
+
     return Card(
       child: Column(
         children: [
           _buildSwitchTile(
+            context,
+            title: 'Tema oscuro',
+            subtitle: darkModeUnlocked
+                ? 'Usar tema oscuro en la aplicación'
+                : '🔒 Desbloquea en la tienda (100 puntos)',
+            value: settings.darkModeEnabled,
+            enabled: darkModeUnlocked,
+            onChanged: (value) {
+              if (darkModeUnlocked) {
+                settings.setDarkModeEnabled(value);
+              } else {
+                _showLockedFeatureDialog(context, 'Tema Oscuro', 100);
+              }
+            },
+          ),
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.palette, color: context.colors.accent),
+            title: Text(
+              'Temas de color',
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.colors.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              'Personaliza los colores de la aplicación',
+              style: AppTypography.bodySmall,
+            ),
+            trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ThemeSettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
+  // CARD DE COMPORTAMIENTO - MODO CONCENTRACIÓN
+  // ═════════════════════════════════════════════════════════════════════════════════
+  Widget _buildBehaviorCard(BuildContext context, SettingsProvider settings, RewardsProvider rewards) {
+    return Card(
+      child: Column(
+        children: [
+          _buildSwitchTile(
+            context,
             title: 'Bloqueo de aplicación',
             subtitle: 'Bloquea la salida de la app durante el pomodoro',
             value: settings.appLockMode,
@@ -482,7 +545,7 @@ class SettingsScreen extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.sky,
+                            backgroundColor: context.colors.accent,
                           ),
                           child: Text('Activar'),
                         ),
@@ -510,19 +573,19 @@ class SettingsScreen extends StatelessWidget {
   Widget _buildAboutCard(BuildContext context, SettingsProvider settings) {
     return Card(
       child: ListTile(
-        leading: Icon(Icons.info_outline, color: AppColors.sky),
+        leading: Icon(Icons.info_outline, color: context.colors.accent),
         title: Text(
           'Acerca de la app',
           style: AppTypography.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.foreground,
+            color: context.colors.textPrimary,
           ),
         ),
         subtitle: Text(
           'Versión, comentarios y contacto',
           style: AppTypography.bodySmall,
         ),
-        trailing: Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+        trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
         onTap: () {
           // Navegar a la pantalla de "Acerca de"
           Navigator.of(context).push(
@@ -540,12 +603,12 @@ class SettingsScreen extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            leading: Icon(Icons.refresh, color: AppColors.destructive),
+            leading: Icon(Icons.refresh, color: context.colors.destructive),
             title: Text(
               'Restablecer estadísticas',
               style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.destructive,
+                color: context.colors.destructive,
               ),
             ),
             subtitle: Text(
@@ -561,7 +624,8 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSwitchTile({
+  Widget _buildSwitchTile(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required bool value,
@@ -576,25 +640,26 @@ class SettingsScreen extends StatelessWidget {
           title,
           style: AppTypography.bodyMedium.copyWith(
             fontWeight: FontWeight.w600,
-            color: enabled ? AppColors.foreground : AppColors.mutedForeground,
+            color: enabled ? context.colors.textPrimary : context.colors.textSecondary,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: AppTypography.bodySmall.copyWith(
-            color: enabled ? AppColors.mutedForeground : AppColors.mutedForeground.withOpacity(0.5),
+            color: enabled ? context.colors.textSecondary : context.colors.textSecondary.withOpacity(0.5),
           ),
         ),
         value: value,
         onChanged: enabled ? onChanged : null,
-        activeColor: AppColors.sky,
-        inactiveThumbColor: enabled ? null : AppColors.mutedForeground.withOpacity(0.3),
-        inactiveTrackColor: enabled ? null : AppColors.muted.withOpacity(0.3),
+        activeColor: context.colors.accent,
+        inactiveThumbColor: enabled ? null : context.colors.textSecondary.withOpacity(0.3),
+        inactiveTrackColor: enabled ? null : context.colors.borderColor.withOpacity(0.3),
       ),
     );
   }
 
-  Widget _buildDropdownTile({
+  Widget _buildDropdownTile(
+    BuildContext context, {
     required String title,
     required String value,
     required List<String> items,
@@ -610,9 +675,9 @@ class SettingsScreen extends StatelessWidget {
       trailing: DropdownButton<String>(
         value: value,
         underline: SizedBox(),
-        dropdownColor: AppColors.card,
+        dropdownColor: context.colors.cardBackground,
         style: AppTypography.bodyMedium.copyWith(
-          color: AppColors.sky,
+          color: context.colors.accent,
           fontWeight: FontWeight.w600,
         ),
         items: items.map((String item) {
@@ -650,7 +715,7 @@ class SettingsScreen extends StatelessWidget {
               },
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: AppColors.mutedForeground),
+                style: TextStyle(color: context.colors.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -669,13 +734,13 @@ class SettingsScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Configuración actualizada. Timer reiniciado.'),
-                    backgroundColor: AppColors.sky,
+                    backgroundColor: context.colors.accent,
                     duration: Duration(seconds: 2),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.destructive,
+                backgroundColor: context.colors.destructive,
               ),
               child: Text('Continuar'),
             ),
@@ -716,7 +781,7 @@ class SettingsScreen extends StatelessWidget {
               },
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: AppColors.mutedForeground),
+                style: TextStyle(color: context.colors.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -725,7 +790,7 @@ class SettingsScreen extends StatelessWidget {
                 // NO mostramos SnackBar aquí, se mostrará después del reset
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.destructive,
+                backgroundColor: context.colors.destructive,
               ),
               child: Text('Continuar'),
             ),
@@ -755,7 +820,7 @@ class SettingsScreen extends StatelessWidget {
               },
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: AppColors.mutedForeground),
+                style: TextStyle(color: context.colors.textSecondary),
               ),
             ),
             ElevatedButton(
@@ -767,14 +832,67 @@ class SettingsScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Estadísticas restablecidas'),
-                    backgroundColor: AppColors.sky,
+                    backgroundColor: context.colors.accent,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.destructive,
+                backgroundColor: context.colors.destructive,
               ),
               child: Text('Restablecer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLockedFeatureDialog(BuildContext context, String featureName, int price) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            '🔒 Característica Bloqueada',
+            style: AppTypography.heading2,
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: context.colors.accent,
+              ),
+              SizedBox(height: 16),
+              Text(
+                '$featureName está bloqueada.',
+                style: AppTypography.bodyLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Puedes desbloquearla en la tienda por $price puntos.',
+                style: AppTypography.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Completa sesiones de pomodoro para ganar puntos.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: context.colors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cerrar'),
             ),
           ],
         );

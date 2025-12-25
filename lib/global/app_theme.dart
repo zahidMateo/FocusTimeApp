@@ -3,6 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'app_colors.dart';
+import 'app_color_themes.dart';
+
+// Exportar las extensiones para facilitar el acceso
+export 'app_theme_extensions.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 // APP THEME - TEMA VISUAL DE LA APLICACIÓN
@@ -302,27 +306,242 @@ class AppTheme {
     ),
   );
 
+  // ─────────────────────────────────────────────────────────────────────────────────
+  // THEME OSCURO (Dark Mode)
+  // ─────────────────────────────────────────────────────────────────────────────────
+  // Tema oscuro moderno usando Material Design 3 Dark Color Scheme
+
+  static ThemeData darkTheme = ThemeData(
+    // Activar Material Design 3
+    useMaterial3: true,
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ COLOR SCHEME OSCURO - Paleta de colores para modo oscuro                     ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    colorScheme: ColorScheme.dark(
+      // ─── Colores principales ───
+      primary: AppColors.lavender, // Lavanda (más brillante en oscuro)
+      onPrimary: Color(0xFF1A1A2E), // Texto oscuro sobre lavanda
+      primaryContainer: AppColors.lavender.withOpacity(0.3),
+
+      // ─── Colores secundarios ───
+      secondary: AppColors.mint, // Mint
+      onSecondary: Color(0xFF1A1A2E), // Texto oscuro sobre mint
+      secondaryContainer: AppColors.mint.withOpacity(0.3),
+
+      // ─── Superficies (Cards, Sheets, etc) ───
+      surface: Color(0xFF1E1E2E), // Superficie oscura (cards)
+      onSurface: Color(0xFFE5E5F0), // Texto claro sobre superficies
+      surfaceContainerHighest: Color(0xFF2A2A3E), // Superficie elevada
+
+      // ─── Fondos ───
+      background: Color(0xFF121218), // Fondo principal muy oscuro
+      onBackground: Color(0xFFE5E5F0), // Texto claro sobre fondo
+
+      // ─── Error/Destructivo ───
+      error: Color(0xFFFF6B6B), // Rojo más suave para oscuro
+      onError: Color(0xFF1A1A2E), // Texto oscuro sobre error
+
+      // ─── Bordes y contornos ───
+      outline: Color(0xFF3A3A4E), // Bordes sutiles oscuros
+      outlineVariant: Color(0xFF2A2A3E), // Variante de bordes
+
+      // ─── Color terciario ───
+      tertiary: AppColors.sky, // Sky
+      onTertiary: Color(0xFF1A1A2E), // Texto oscuro sobre sky
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ APP BAR OSCURO                                                                ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    appBarTheme: AppBarTheme(
+      backgroundColor: Color(0xFF1E1E2E), // Fondo oscuro
+      foregroundColor: Color(0xFFE5E5F0), // Texto claro
+      elevation: 0,
+      centerTitle: true,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Color(0xFF000000),
+      titleTextStyle: TextStyle(
+        color: Color(0xFFE5E5F0),
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ SCAFFOLD OSCURO                                                               ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    scaffoldBackgroundColor: Color(0xFF121218),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ TEXT THEME OSCURO                                                             ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    textTheme: GoogleFonts.poppinsTextTheme(
+      TextTheme(
+        displayLarge: AppTypography.timerDisplay.copyWith(
+          color: Color(0xFFE5E5F0),
+        ),
+        headlineLarge: AppTypography.heading1.copyWith(
+          color: Color(0xFFE5E5F0),
+        ),
+        headlineMedium: AppTypography.heading2.copyWith(
+          color: Color(0xFFE5E5F0),
+        ),
+        bodyLarge: AppTypography.bodyLarge.copyWith(
+          color: Color(0xFFD0D0E0),
+        ),
+        bodyMedium: AppTypography.bodySmall.copyWith(
+          color: Color(0xFFD0D0E0),
+        ),
+        bodySmall: AppTypography.caption.copyWith(
+          color: Color(0xFFA0A0B5),
+        ),
+        labelLarge: AppTypography.label.copyWith(
+          color: Color(0xFFD0D0E0),
+        ),
+      ),
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ CARD OSCURO                                                                   ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    cardTheme: CardThemeData(
+      color: Color(0xFF1E1E2E), // Fondo de card oscuro
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        side: BorderSide(
+          color: Color(0xFF3A3A4E), // Borde sutil
+          width: 1,
+        ),
+      ),
+      margin: EdgeInsets.all(AppConstants.paddingMedium),
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ BOTONES OSCUROS                                                               ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.lavender,
+        foregroundColor: Color(0xFF1A1A2E),
+        elevation: 0,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppConstants.paddingLarge,
+          vertical: AppConstants.paddingMedium,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        ),
+        textStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    ),
+
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.lavender,
+        side: BorderSide(color: Color(0xFF3A3A4E), width: 1.5),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppConstants.paddingLarge,
+          vertical: AppConstants.paddingMedium,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        ),
+      ),
+    ),
+
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.lavender,
+        padding: EdgeInsets.symmetric(
+          horizontal: AppConstants.paddingMedium,
+          vertical: AppConstants.paddingSmall,
+        ),
+      ),
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ ICONOS OSCUROS                                                                ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    iconTheme: IconThemeData(
+      color: Color(0xFFE5E5F0),
+      size: AppConstants.buttonIconSize,
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ DIVIDER OSCURO                                                                ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    dividerTheme: DividerThemeData(
+      color: Color(0xFF3A3A4E),
+      thickness: 1,
+      space: AppConstants.paddingMedium,
+    ),
+
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ INPUT DECORATION OSCURO                                                       ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Color(0xFF2A2A3E),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: BorderSide(color: Color(0xFF3A3A4E)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: BorderSide(color: Color(0xFF3A3A4E)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+        borderSide: BorderSide(color: AppColors.lavender, width: 2),
+      ),
+      contentPadding: EdgeInsets.all(AppConstants.paddingMedium),
+    ),
+  );
+
   // ═══════════════════════════════════════════════════════════════════════════════════
-  // NOTA: Dark Mode (Tema oscuro)
+  // MÉTODO PARA GENERAR THEME PERSONALIZADO SEGÚN EL TEMA SELECCIONADO
   // ═══════════════════════════════════════════════════════════════════════════════════
-  //
-  // Si en el futuro quieres agregar un tema oscuro, crea otro ThemeData:
-  //
-  // static ThemeData darkTheme = ThemeData(
-  //   useMaterial3: true,
-  //   colorScheme: ColorScheme.dark(
-  //     primary: AppColors.lavender,
-  //     background: Color(0xFF121212),  // Fondo oscuro
-  //     surface: Color(0xFF1E1E1E),     // Superficies oscuras
-  //     // ... etc
-  //   ),
-  //   // ... resto de configuraciones
-  // );
-  //
-  // Y en main.dart:
-  //   MaterialApp(
-  //     theme: AppTheme.lightTheme,      ← Tema claro
-  //     darkTheme: AppTheme.darkTheme,   ← Tema oscuro
-  //     themeMode: ThemeMode.system,     ← Sigue configuración del sistema
-  //   )
+  static ThemeData getThemedLight(String selectedTheme) {
+    final themeColors = AppColorThemes.getThemeColors(selectedTheme);
+    final primaryColor = themeColors['primary']!;
+    final accentColor = themeColors['accent']!;
+
+    return lightTheme.copyWith(
+      colorScheme: lightTheme.colorScheme.copyWith(
+        primary: primaryColor,
+        secondary: accentColor,
+        tertiary: accentColor,
+      ),
+    );
+  }
+
+  static ThemeData getThemedDark(String selectedTheme) {
+    final themeColors = AppColorThemes.getThemeColors(selectedTheme);
+    final primaryColor = themeColors['primary']!;
+    final accentColor = themeColors['accent']!;
+
+    return darkTheme.copyWith(
+      colorScheme: darkTheme.colorScheme.copyWith(
+        primary: primaryColor,
+        secondary: accentColor,
+        tertiary: accentColor,
+      ),
+    );
+  }
 }

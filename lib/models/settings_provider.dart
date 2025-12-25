@@ -92,6 +92,13 @@ class SettingsProvider extends ChangeNotifier {
   double _soundVolume = 0.7; // Volumen (0.0 a 1.0)
 
   // ─────────────────────────────────────────────────────────────────────────────────
+  // CONFIGURACIONES DE APARIENCIA
+  // ─────────────────────────────────────────────────────────────────────────────────
+
+  bool _darkModeEnabled = false; // ¿Tema oscuro activado?
+  String _selectedTheme = 'lavender'; // Tema de color seleccionado (lavender es el original de la app)
+
+  // ─────────────────────────────────────────────────────────────────────────────────
   // ESTADO DEL TIMER
   // ─────────────────────────────────────────────────────────────────────────────────
   // Esto nos permite saber si el timer está corriendo para validar cambios
@@ -146,6 +153,10 @@ class SettingsProvider extends ChangeNotifier {
   // ─── Sonido ───
   String get selectedSound => _selectedSound;
   double get soundVolume => _soundVolume;
+
+  // ─── Apariencia ───
+  bool get darkModeEnabled => _darkModeEnabled;
+  String get selectedTheme => _selectedTheme;
 
   // ─── Estado del timer ───
   bool get isTimerRunning => _isTimerRunning;
@@ -275,6 +286,22 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────────
+  // SETTERS DE APARIENCIA
+  // ─────────────────────────────────────────────────────────────────────────────────
+
+  void setDarkModeEnabled(bool value) {
+    _darkModeEnabled = value;
+    _saveSettings(); // Guarda automáticamente
+    notifyListeners();
+  }
+
+  void setSelectedTheme(String value) {
+    _selectedTheme = value;
+    _saveSettings(); // Guarda automáticamente
+    notifyListeners();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────────
   // SETTER DE ESTADO DEL TIMER
   // ─────────────────────────────────────────────────────────────────────────────────
   // timer_screen.dart llama esto cuando el timer inicia/pausa
@@ -315,6 +342,9 @@ class SettingsProvider extends ChangeNotifier {
     // Sonido
     _selectedSound = 'Ninguno';
     _soundVolume = 0.7;
+
+    // Apariencia
+    _darkModeEnabled = false;
 
     // Guardar los valores por defecto
     _saveSettings();
@@ -359,6 +389,10 @@ class SettingsProvider extends ChangeNotifier {
       _selectedSound = prefs.getString('selectedSound') ?? 'Ninguno';
       _soundVolume = prefs.getDouble('soundVolume') ?? 0.7;
 
+      // Cargar configuraciones de apariencia
+      _darkModeEnabled = prefs.getBool('darkModeEnabled') ?? false;
+      _selectedTheme = prefs.getString('selectedTheme') ?? 'lavender'; // Lavender es el tema original
+
       // Notificar que las configuraciones se cargaron
       notifyListeners();
       debugPrint('✅ Configuraciones cargadas desde SharedPreferences');
@@ -395,6 +429,10 @@ class SettingsProvider extends ChangeNotifier {
       // Guardar sonido
       await prefs.setString('selectedSound', _selectedSound);
       await prefs.setDouble('soundVolume', _soundVolume);
+
+      // Guardar apariencia
+      await prefs.setBool('darkModeEnabled', _darkModeEnabled);
+      await prefs.setString('selectedTheme', _selectedTheme);
 
       debugPrint('💾 Configuraciones guardadas');
     } catch (e) {

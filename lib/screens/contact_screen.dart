@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 
@@ -23,10 +24,10 @@ class ContactScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
         title: Text('Contacto'),
-        backgroundColor: AppColors.card,
+        backgroundColor: context.colors.cardBackground,
         elevation: 0,
       ),
       body: ListView(
@@ -36,12 +37,12 @@ class ContactScreen extends StatelessWidget {
           // DESCRIPCIÓN
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: AppColors.sky.withOpacity(0.1),
+            color: context.colors.accent.withOpacity(0.1),
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Row(
                 children: [
-                  Icon(Icons.support_agent, color: AppColors.sky),
+                  Icon(Icons.support_agent, color: context.colors.accent),
                   SizedBox(width: AppConstants.paddingMedium),
                   Expanded(
                     child: Text(
@@ -60,6 +61,7 @@ class ContactScreen extends StatelessWidget {
           // EMAIL DE SOPORTE
           // ═══════════════════════════════════════════════════════════════════════════
           _buildContactCard(
+            context,
             icon: Icons.email_outlined,
             title: 'Email de soporte',
             subtitle: supportEmail,
@@ -80,6 +82,7 @@ class ContactScreen extends StatelessWidget {
           // TWITTER/X
           // ═══════════════════════════════════════════════════════════════════════════
           _buildContactCard(
+            context,
             icon: Icons.share,
             title: 'Twitter / X',
             subtitle: twitterHandle,
@@ -100,7 +103,7 @@ class ContactScreen extends StatelessWidget {
           // HORARIO DE ATENCIÓN
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: AppColors.card,
+            color: context.colors.cardBackground,
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Column(
@@ -108,7 +111,7 @@ class ContactScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.access_time, color: AppColors.sky, size: 20),
+                      Icon(Icons.access_time, color: context.colors.accent, size: 20),
                       SizedBox(width: AppConstants.paddingSmall),
                       Text(
                         'Horario de atención',
@@ -122,7 +125,7 @@ class ContactScreen extends StatelessWidget {
                   Text(
                     'Lunes a Viernes: 9:00 AM - 6:00 PM\nSábados: 10:00 AM - 2:00 PM\nDomingos: Cerrado',
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.mutedForeground,
+                      color: context.colors.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -137,7 +140,7 @@ class ContactScreen extends StatelessWidget {
           // TIEMPO DE RESPUESTA
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: AppColors.card,
+            color: context.colors.cardBackground,
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Column(
@@ -145,7 +148,7 @@ class ContactScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.timer_outlined, color: AppColors.sky, size: 20),
+                      Icon(Icons.timer_outlined, color: context.colors.accent, size: 20),
                       SizedBox(width: AppConstants.paddingSmall),
                       Text(
                         'Tiempo de respuesta',
@@ -159,7 +162,7 @@ class ContactScreen extends StatelessWidget {
                   Text(
                     'Generalmente respondemos en menos de 24 horas',
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.mutedForeground,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 ],
@@ -171,7 +174,8 @@ class ContactScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactCard({
+  Widget _buildContactCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -179,7 +183,7 @@ class ContactScreen extends StatelessWidget {
   }) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: AppColors.sky),
+        leading: Icon(icon, color: context.colors.accent),
         title: Text(
           title,
           style: AppTypography.bodyMedium.copyWith(
@@ -190,7 +194,7 @@ class ContactScreen extends StatelessWidget {
           subtitle,
           style: AppTypography.bodySmall,
         ),
-        trailing: Icon(Icons.open_in_new, color: AppColors.mutedForeground, size: 20),
+        trailing: Icon(Icons.open_in_new, color: context.colors.textSecondary, size: 20),
         onTap: onTap,
       ),
     );

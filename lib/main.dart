@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/screens/main_screens.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
+import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/services/notification_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
@@ -94,47 +95,60 @@ class PomodoroApp extends StatelessWidget {
     //   final settings = Provider.of<SettingsProvider>(context, listen: false);
     //   settings.setFocusDuration(30);
 
-    return ChangeNotifierProvider(
-      // create: se ejecuta UNA VEZ para crear la instancia del provider
-      // (context) => SettingsProvider() crea nuestro gestor de configuraciones
-      create: (context) => SettingsProvider(),
+    return MultiProvider(
+      // Proporcionamos múltiples providers: SettingsProvider y RewardsProvider
+      providers: [
+        ChangeNotifierProvider(create: (context) => SettingsProvider()),
+        ChangeNotifierProvider(create: (context) => RewardsProvider()),
+      ],
 
-      // child: define qué widget tiene acceso al provider (en este caso, toda la app)
-      child: MaterialApp(
-        // ─────────────────────────────────────────────────────────────────────────
-        // CONFIGURACIÓN DE LA APP
-        // ─────────────────────────────────────────────────────────────────────────
+      // child: define qué widget tiene acceso a los providers (en este caso, toda la app)
+      // Usamos Consumer para que el MaterialApp se reconstruya cuando cambie el tema
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, child) {
+          return MaterialApp(
+            // ─────────────────────────────────────────────────────────────────────
+            // CONFIGURACIÓN DE LA APP
+            // ─────────────────────────────────────────────────────────────────────
 
-        // Título que aparece en el task switcher del sistema operativo
-        title: 'Pomodoro Timer',
+            // Título que aparece en el task switcher del sistema operativo
+            title: 'Pomodoro Timer',
 
-        // Quita el banner de "DEBUG" de la esquina superior derecha
-        debugShowCheckedModeBanner: false,
+            // Quita el banner de "DEBUG" de la esquina superior derecha
+            debugShowCheckedModeBanner: false,
 
-        // ═════════════════════════════════════════════════════════════════════════
-        // THEME - Aplica todo el diseño visual definido en app_theme.dart
-        // ═════════════════════════════════════════════════════════════════════════
-        // Esto hace que TODOS los widgets usen automáticamente los colores,
-        // estilos de texto, y configuraciones que definimos en AppTheme.lightTheme
-        theme: AppTheme.lightTheme,
+            // ═════════════════════════════════════════════════════════════════════
+            // THEME - Aplica el tema visual según la configuración del usuario
+            // ═════════════════════════════════════════════════════════════════════
+            // theme: tema claro (siempre disponible)
+            // darkTheme: tema oscuro (cuando el usuario lo activa)
+            // themeMode: controla qué tema usar basándose en settings.darkModeEnabled
+            // getThemedLight/Dark: aplica el tema de color seleccionado
+            theme: AppTheme.getThemedLight(settings.selectedTheme),
+            darkTheme: AppTheme.getThemedDark(settings.selectedTheme),
+            themeMode: settings.darkModeEnabled
+                ? ThemeMode.dark
+                : ThemeMode.light,
 
-        // ═════════════════════════════════════════════════════════════════════════
-        // HOME - Primera pantalla que se muestra al abrir la app
-        // ═════════════════════════════════════════════════════════════════════════
-        // MainScreen es nuestro NavigationBar con las 4 pantallas
-        home: const MainScreen(),
+            // ═════════════════════════════════════════════════════════════════════
+            // HOME - Primera pantalla que se muestra al abrir la app
+            // ═════════════════════════════════════════════════════════════════════
+            // MainScreen es nuestro NavigationBar con las 5 pantallas
+            home: const MainScreen(),
 
-        // ─────────────────────────────────────────────────────────────────────────
-        // NOTA: Si quieres agregar rutas nombradas en el futuro:
-        // ─────────────────────────────────────────────────────────────────────────
-        // routes: {
-        //   '/': (context) => MainScreen(),
-        //   '/settings': (context) => SettingsScreen(),
-        //   '/timer': (context) => TimerScreen(),
-        // },
-        //
-        // Y navegarías así:
-        //   Navigator.pushNamed(context, '/settings');
+            // ───────────────────────────────────────────────────────────────────
+            // NOTA: Si quieres agregar rutas nombradas en el futuro:
+            // ───────────────────────────────────────────────────────────────────
+            // routes: {
+            //   '/': (context) => MainScreen(),
+            //   '/settings': (context) => SettingsScreen(),
+            //   '/timer': (context) => TimerScreen(),
+            // },
+            //
+            // Y navegarías así:
+            //   Navigator.pushNamed(context, '/settings');
+          );
+        },
       ),
     );
   }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
+import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/services/audio_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
@@ -40,18 +42,20 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
   // LISTA DE SONIDOS DISPONIBLES
   // ═════════════════════════════════════════════════════════════════════════════════
 
-  final List<Map<String, dynamic>> _availableSounds = [
-    {'name': 'Ninguno', 'icon': Icons.volume_off},
-    {'name': 'Ruido blanco', 'icon': Icons.waves},
-    {'name': 'Ruido marrón', 'icon': Icons.water},
-    {'name': 'Ruido rosa', 'icon': Icons.grain},
-    {'name': 'Lluvia', 'icon': Icons.cloud},
-    {'name': 'Oleaje', 'icon': Icons.beach_access},
-    {'name': 'Viento suave', 'icon': Icons.air},
-    {'name': 'Música instrumental', 'icon': Icons.music_note},
-    {'name': 'Ventilador', 'icon': Icons.ac_unit},
-    {'name': 'Río', 'icon': Icons.water_drop},
-    {'name': 'Fuego crepitante', 'icon': Icons.local_fire_department},
+  // Sonidos GRATUITOS (disponibles siempre)
+  final List<Map<String, dynamic>> _freeSounds = [
+    {'name': 'Ninguno', 'icon': Icons.volume_off, 'premium': false},
+    {'name': 'Ruido blanco', 'icon': Icons.waves, 'premium': false},
+    {'name': 'Ruido marrón', 'icon': Icons.water, 'premium': false},
+    {'name': 'Ruido rosa', 'icon': Icons.grain, 'premium': false},
+  ];
+
+  // Sonidos PREMIUM (requieren compra individual)
+  final List<Map<String, dynamic>> _premiumSounds = [
+    {'name': 'Lluvia', 'icon': Icons.cloud, 'premium': true, 'itemId': 'sound_rain', 'price': 75},
+    {'name': 'Bosque', 'icon': Icons.park, 'premium': true, 'itemId': 'sound_forest', 'price': 75},
+    {'name': 'Café', 'icon': Icons.coffee, 'premium': true, 'itemId': 'sound_cafe', 'price': 75},
+    {'name': 'Biblioteca', 'icon': Icons.menu_book, 'premium': true, 'itemId': 'sound_library', 'price': 75},
   ];
 
   // ═════════════════════════════════════════════════════════════════════════════════
@@ -107,7 +111,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('No se pudo reproducir el sonido'),
-          backgroundColor: AppColors.destructive,
+          backgroundColor: context.colors.destructive,
         ),
       );
     }
@@ -195,7 +199,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
             ),
             child: Text('Guardar'),
           ),
@@ -214,16 +218,138 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
   }
 
   // ═════════════════════════════════════════════════════════════════════════════════
+  // WIDGETS
+  // ═════════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildSoundCard(Map<String, dynamic> sound, bool isLocked) {
+    final isSelected = _selectedSound == sound['name'];
+    final price = sound['price'] as int?;
+
+    return Card(
+      margin: EdgeInsets.only(bottom: AppConstants.paddingSmall),
+      color: isSelected
+          ? context.colors.accent.withOpacity(0.1)
+          : context.colors.cardBackground,
+      child: ListTile(
+        leading: Icon(
+          sound['icon'] as IconData,
+          color: isLocked
+              ? context.colors.textSecondary.withOpacity(0.5)
+              : isSelected
+                  ? context.colors.accent
+                  : context.colors.textSecondary,
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                sound['name'] as String,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: isLocked
+                      ? context.colors.textSecondary
+                      : isSelected
+                          ? context.colors.accent
+                          : context.colors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+            if (isLocked && price != null) ...[
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: context.colors.textSecondary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock_outline, size: 12, color: context.colors.textSecondary),
+                    SizedBox(width: 4),
+                    Text(
+                      '$price',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: context.colors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        trailing: isSelected
+            ? Icon(Icons.check_circle, color: context.colors.accent)
+            : null,
+        onTap: () {
+          if (isLocked) {
+            _showLockedSoundDialog(sound['name'] as String, price ?? 0);
+          } else {
+            setState(() {
+              _selectedSound = sound['name'] as String;
+            });
+            // Reproducir preview automáticamente al seleccionar
+            _previewSound(sound['name'] as String);
+          }
+        },
+      ),
+    );
+  }
+
+  void _showLockedSoundDialog(String soundName, int price) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          '🔒 Sonido Bloqueado',
+          style: AppTypography.heading2,
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.music_note, size: 64, color: context.colors.accent),
+            SizedBox(height: 16),
+            Text(
+              '$soundName está bloqueado.',
+              style: AppTypography.bodyLarge.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Desbloquea este sonido en la tienda por $price puntos.',
+              style: AppTypography.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═════════════════════════════════════════════════════════════════════════════════
   // BUILD
   // ═════════════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
+    final rewards = Provider.of<RewardsProvider>(context);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
         title: Text('Sonidos ambientales'),
-        backgroundColor: AppColors.card,
+        backgroundColor: context.colors.cardBackground,
         elevation: 0,
       ),
       body: Column(
@@ -233,38 +359,34 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               children: [
                 // ═════════════════════════════════════════════════════════════════
-                // LISTA DE SONIDOS (todos disponibles)
+                // SONIDOS GRATUITOS
                 // ═════════════════════════════════════════════════════════════════
-                ..._availableSounds.map((sound) {
-                  final isSelected = _selectedSound == sound['name'];
+                Text(
+                  'Sonidos Gratuitos',
+                  style: AppTypography.heading2.copyWith(fontSize: 18),
+                ),
+                SizedBox(height: AppConstants.paddingSmall),
 
-                  return Card(
-                    margin: EdgeInsets.only(bottom: AppConstants.paddingSmall),
-                    color: isSelected ? AppColors.sky.withOpacity(0.1) : AppColors.card,
-                    child: ListTile(
-                      leading: Icon(
-                        sound['icon'] as IconData,
-                        color: isSelected ? AppColors.sky : AppColors.mutedForeground,
-                      ),
-                      title: Text(
-                        sound['name'] as String,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: isSelected ? AppColors.sky : AppColors.foreground,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: AppColors.sky)
-                          : null,
-                      onTap: () {
-                        setState(() {
-                          _selectedSound = sound['name'] as String;
-                        });
-                        // Reproducir preview automáticamente al seleccionar
-                        _previewSound(sound['name'] as String);
-                      },
-                    ),
-                  );
+                ..._freeSounds.map((sound) {
+                  return _buildSoundCard(sound, false);
+                }).toList(),
+
+                SizedBox(height: AppConstants.paddingLarge),
+
+                // ═════════════════════════════════════════════════════════════════
+                // SONIDOS PREMIUM
+                // ═════════════════════════════════════════════════════════════════
+                Text(
+                  'Sonidos Premium',
+                  style: AppTypography.heading2.copyWith(fontSize: 18),
+                ),
+                SizedBox(height: AppConstants.paddingSmall),
+
+                ..._premiumSounds.map((sound) {
+                  // Verificar si este sonido específico está desbloqueado
+                  final itemId = sound['itemId'] as String;
+                  final isUnlocked = rewards.isItemPurchased(itemId);
+                  return _buildSoundCard(sound, !isUnlocked);
                 }).toList(),
 
                 SizedBox(height: AppConstants.paddingLarge),
@@ -273,7 +395,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
                 // CONTROL DE VOLUMEN
                 // ═════════════════════════════════════════════════════════════════
                 Card(
-                  color: AppColors.card,
+                  color: context.colors.cardBackground,
                   child: Padding(
                     padding: EdgeInsets.all(AppConstants.paddingMedium),
                     child: Column(
@@ -288,7 +410,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
                         SizedBox(height: AppConstants.paddingSmall),
                         Row(
                           children: [
-                            Icon(Icons.volume_down, color: AppColors.mutedForeground),
+                            Icon(Icons.volume_down, color: context.colors.textSecondary),
                             Expanded(
                               child: Slider(
                                 value: _soundVolume,
@@ -296,7 +418,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
                                 max: 1.0,
                                 divisions: 10,
                                 label: '${(_soundVolume * 100).toInt()}%',
-                                activeColor: AppColors.sky,
+                                activeColor: context.colors.accent,
                                 onChanged: (value) {
                                   setState(() {
                                     _soundVolume = value;
@@ -308,7 +430,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
                                 },
                               ),
                             ),
-                            Icon(Icons.volume_up, color: AppColors.mutedForeground),
+                            Icon(Icons.volume_up, color: context.colors.textSecondary),
                           ],
                         ),
                       ],
@@ -327,7 +449,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
           Container(
             padding: EdgeInsets.all(AppConstants.paddingMedium),
             decoration: BoxDecoration(
-              color: AppColors.card,
+              color: context.colors.cardBackground,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),

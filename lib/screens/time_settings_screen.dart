@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
@@ -67,7 +67,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Configuración guardada. Timer reiniciado.'),
-          backgroundColor: AppColors.sky,
+          backgroundColor: context.colors.accent,
           duration: Duration(seconds: 2),
         ),
       );
@@ -76,7 +76,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('✅ Configuración guardada exitosamente'),
-          backgroundColor: AppColors.sky,
+          backgroundColor: context.colors.accent,
           duration: Duration(seconds: 2),
         ),
       );
@@ -98,7 +98,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.cardBackground,
       appBar: AppBar(
         title: Text('Configurar tiempos'),
         centerTitle: true,
@@ -114,7 +114,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                 Text(
                   'Ajusta la duración de cada ciclo Pomodoro',
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.mutedForeground,
+                    color: context.colors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -186,10 +186,10 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
           Container(
             padding: EdgeInsets.all(AppConstants.paddingLarge),
             decoration: BoxDecoration(
-              color: AppColors.card,
+              color: context.colors.cardBackground,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.border,
+                  color: context.colors.borderColor,
                   blurRadius: 4,
                   offset: Offset(0, -2),
                 ),
@@ -200,7 +200,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
               child: ElevatedButton(
                 onPressed: _saveChanges,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sky,
+                  backgroundColor: context.colors.accent,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
                     vertical: AppConstants.paddingMedium,
@@ -244,7 +244,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
               label,
               style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.foreground,
+                color: context.colors.textPrimary,
               ),
             ),
             Container(
@@ -253,13 +253,13 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                 vertical: AppConstants.paddingSmall,
               ),
               decoration: BoxDecoration(
-                color: AppColors.sky.withOpacity(0.2),
+                color: context.colors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '${value.toInt()} min',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.sky,
+                  color: context.colors.accent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -271,10 +271,10 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
         // Slider
         SliderTheme(
           data: SliderThemeData(
-            activeTrackColor: AppColors.sky,
-            inactiveTrackColor: AppColors.muted,
-            thumbColor: AppColors.sky,
-            overlayColor: AppColors.sky.withOpacity(0.2),
+            activeTrackColor: context.colors.accent,
+            inactiveTrackColor: context.colors.borderColor.withOpacity(0.3),
+            thumbColor: context.colors.accent,
+            overlayColor: context.colors.accent.withOpacity(0.2),
             trackHeight: 4,
           ),
           child: Slider(
@@ -311,7 +311,7 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
               label,
               style: AppTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
-                color: AppColors.foreground,
+                color: context.colors.textPrimary,
               ),
             ),
             Container(
@@ -320,13 +320,13 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                 vertical: AppConstants.paddingSmall,
               ),
               decoration: BoxDecoration(
-                color: AppColors.sky.withOpacity(0.2),
+                color: context.colors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '$value ciclos',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.sky,
+                  color: context.colors.accent,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -338,10 +338,10 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
         // Slider
         SliderTheme(
           data: SliderThemeData(
-            activeTrackColor: AppColors.sky,
-            inactiveTrackColor: AppColors.muted,
-            thumbColor: AppColors.sky,
-            overlayColor: AppColors.sky.withOpacity(0.2),
+            activeTrackColor: context.colors.accent,
+            inactiveTrackColor: context.colors.borderColor.withOpacity(0.3),
+            thumbColor: context.colors.accent,
+            overlayColor: context.colors.accent.withOpacity(0.2),
             trackHeight: 4,
           ),
           child: Slider(

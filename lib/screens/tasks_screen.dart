@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/services/notification_service.dart';
@@ -16,7 +17,7 @@ class TaskCollection {
 
   TaskCollection({
     required this.name,
-    this.color = const Color(0xFFB8D4E8), // Azul pastel por defecto
+    this.color = AppColors.sky, // Azul pastel por defecto
   });
 
   Map<String, dynamic> toJson() => {
@@ -28,7 +29,7 @@ class TaskCollection {
         name: json['name'],
         color: json['color'] != null
             ? Color(json['color'])
-            : const Color(0xFFB8D4E8),
+            : AppColors.sky,
       );
 }
 
@@ -273,7 +274,7 @@ class _TasksScreenState extends State<TasksScreen> {
             children: [
               // Opción "Sin colección"
               ListTile(
-                leading: Icon(Icons.inbox_outlined, color: AppColors.mutedForeground),
+                leading: Icon(Icons.inbox_outlined, color: context.colors.textSecondary),
                 title: Text('Sin colección'),
                 subtitle: Text('No asignar a ninguna colección'),
                 onTap: () => Navigator.pop(context, null),
@@ -290,7 +291,7 @@ class _TasksScreenState extends State<TasksScreen> {
               ],
               // Opción crear nueva colección
               ListTile(
-                leading: Icon(Icons.add_circle_outline, color: AppColors.sky),
+                leading: Icon(Icons.add_circle_outline, color: context.colors.accent),
                 title: Text('Crear nueva colección'),
                 onTap: () async {
                   Navigator.pop(context, 'CREATE_NEW');
@@ -338,7 +339,7 @@ class _TasksScreenState extends State<TasksScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
               foregroundColor: Colors.white,
             ),
             child: Text('Crear'),
@@ -417,7 +418,7 @@ class _TasksScreenState extends State<TasksScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
               foregroundColor: Colors.white,
             ),
             child: Text('Crear'),
@@ -471,7 +472,7 @@ class _TasksScreenState extends State<TasksScreen> {
               _saveCollections();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.destructive,
+              backgroundColor: context.colors.destructive,
               foregroundColor: Colors.white,
             ),
             child: Text('Eliminar'),
@@ -503,7 +504,7 @@ class _TasksScreenState extends State<TasksScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
               foregroundColor: Colors.white,
             ),
             child: Text('Agregar'),
@@ -569,7 +570,7 @@ class _TasksScreenState extends State<TasksScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
               foregroundColor: Colors.white,
             ),
             child: Text('Guardar'),
@@ -596,19 +597,19 @@ class _TasksScreenState extends State<TasksScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.event, color: AppColors.sky),
+              leading: Icon(Icons.event, color: context.colors.accent),
               title: Text('Fecha específica'),
               subtitle: Text('Programar para un día en particular'),
               onTap: () => Navigator.pop(context, 'date'),
             ),
             ListTile(
-              leading: Icon(Icons.repeat, color: AppColors.sky),
+              leading: Icon(Icons.repeat, color: context.colors.accent),
               title: Text('Repetir cada semana'),
               subtitle: Text('Programar para varios días'),
               onTap: () => Navigator.pop(context, 'repeat'),
             ),
             ListTile(
-              leading: Icon(Icons.cancel_outlined, color: AppColors.mutedForeground),
+              leading: Icon(Icons.cancel_outlined, color: context.colors.textSecondary),
               title: Text('Cancelar'),
               onTap: () => Navigator.pop(context, 'cancel'),
             ),
@@ -627,9 +628,9 @@ class _TasksScreenState extends State<TasksScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColors.sky,
+              primary: context.colors.accent,
               onPrimary: Colors.white,
-              onSurface: AppColors.foreground,
+              onSurface: context.colors.textPrimary,
             ),
           ),
           child: child!,
@@ -658,9 +659,9 @@ class _TasksScreenState extends State<TasksScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColors.sky,
+              primary: context.colors.accent,
               onPrimary: Colors.white,
-              onSurface: AppColors.foreground,
+              onSurface: context.colors.textPrimary,
             ),
           ),
           child: child!,
@@ -679,7 +680,9 @@ class _TasksScreenState extends State<TasksScreen> {
     );
 
     final notificationTime = scheduledDateTime.subtract(Duration(hours: 1));
+    bool notificationScheduled = false;
 
+    // Intentar programar la notificación si es posible
     if (notificationTime.isAfter(DateTime.now())) {
       await NotificationService.scheduleTaskNotification(
         taskId: int.parse(_tasks[index].id),
@@ -687,31 +690,34 @@ class _TasksScreenState extends State<TasksScreen> {
         body: '${_tasks[index].title} - en 1 hora',
         scheduledTime: notificationTime,
       );
+      notificationScheduled = true;
+    }
 
-      setState(() {
-        _tasks[index].scheduledFor = scheduledDateTime;
-        _tasks[index].scheduledTime = null;
-        _tasks[index].repeatDays = [];
-        _tasks[index].hasNotification = true;
-      });
+    // Guardar la fecha programada SIEMPRE, independientemente de la notificación
+    setState(() {
+      _tasks[index].scheduledFor = scheduledDateTime;
+      _tasks[index].scheduledTime = null;
+      _tasks[index].repeatDays = [];
+      _tasks[index].hasNotification = notificationScheduled;
+    });
 
-      _saveTasks();
+    _saveTasks();
 
-      if (mounted) {
+    // Mostrar mensaje apropiado
+    if (mounted) {
+      if (notificationScheduled) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✓ Recordatorio programado 1 hora antes'),
-            backgroundColor: AppColors.sky,
+            content: Text('✓ Tarea programada con recordatorio 1 hora antes'),
+            backgroundColor: context.colors.accent,
             duration: Duration(seconds: 2),
           ),
         );
-      }
-    } else {
-      if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('La hora debe ser al menos en 1 hora'),
-            backgroundColor: AppColors.destructive,
+            content: Text('✓ Tarea programada (sin notificación)'),
+            backgroundColor: context.colors.accent,
             duration: Duration(seconds: 2),
           ),
         );
@@ -726,25 +732,36 @@ class _TasksScreenState extends State<TasksScreen> {
     if (selectedDays == null || selectedDays.isEmpty || !mounted) return;
 
     // Programar notificaciones para cada día seleccionado
-    await _scheduleRepeatingNotifications(index, pickedTime, selectedDays);
+    final notificationScheduled = await _scheduleRepeatingNotifications(index, pickedTime, selectedDays);
 
+    // Guardar la tarea con días repetidos SIEMPRE, independientemente de las notificaciones
     setState(() {
       _tasks[index].scheduledTime = pickedTime;
       _tasks[index].repeatDays = selectedDays;
       _tasks[index].scheduledFor = null;
-      _tasks[index].hasNotification = true;
+      _tasks[index].hasNotification = notificationScheduled;
     });
 
     _saveTasks();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✓ Rutina programada para ${selectedDays.length} días'),
-          backgroundColor: AppColors.sky,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (notificationScheduled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ Rutina programada con recordatorios'),
+            backgroundColor: context.colors.accent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ Rutina programada (sin notificaciones)'),
+            backgroundColor: context.colors.accent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -778,7 +795,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   ? null
                   : () => Navigator.pop(context, selected),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sky,
+                backgroundColor: context.colors.accent,
                 foregroundColor: Colors.white,
               ),
               child: Text('Confirmar'),
@@ -807,10 +824,10 @@ class _TasksScreenState extends State<TasksScreen> {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.sky : AppColors.background,
+            color: isSelected ? context.colors.accent : context.colors.appBackground,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? AppColors.sky : AppColors.border,
+              color: isSelected ? context.colors.accent : context.colors.borderColor,
               width: 1,
             ),
           ),
@@ -818,14 +835,14 @@ class _TasksScreenState extends State<TasksScreen> {
             children: [
               Icon(
                 isSelected ? Icons.check_circle : Icons.circle_outlined,
-                color: isSelected ? Colors.white : AppColors.mutedForeground,
+                color: isSelected ? Colors.white : context.colors.textSecondary,
                 size: 20,
               ),
               SizedBox(width: 12),
               Text(
                 _getDayName(day),
                 style: AppTypography.bodyMedium.copyWith(
-                  color: isSelected ? Colors.white : AppColors.foreground,
+                  color: isSelected ? Colors.white : context.colors.textPrimary,
                 ),
               ),
             ],
@@ -890,9 +907,10 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Future<void> _scheduleRepeatingNotifications(
+  Future<bool> _scheduleRepeatingNotifications(
       int index, TimeOfDay time, List<int> days) async {
     final baseId = int.parse(_tasks[index].id);
+    bool anyNotificationScheduled = false;
 
     for (final day in days) {
       // Calcular la próxima ocurrencia de este día
@@ -912,8 +930,11 @@ class _TasksScreenState extends State<TasksScreen> {
           body: '${_tasks[index].title} - en 1 hora',
           scheduledTime: notificationTime,
         );
+        anyNotificationScheduled = true;
       }
     }
+
+    return anyNotificationScheduled;
   }
 
   DateTime _getNextOccurrence(int targetDay, TimeOfDay time) {
@@ -986,20 +1007,18 @@ class _TasksScreenState extends State<TasksScreen> {
     if (_selectedDate != null) {
       final selectedDay = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
       filtered = filtered.where((t) {
-        // Mostrar si fue creada ese día
-        final createdDay = DateTime(t.createdAt.year, t.createdAt.month, t.createdAt.day);
-        if (createdDay == selectedDay) return true;
-
-        // Mostrar si está programada para ese día
+        // Mostrar si está programada para ese día exacto
         if (t.scheduledFor != null) {
           final scheduledDay = DateTime(t.scheduledFor!.year, t.scheduledFor!.month, t.scheduledFor!.day);
-          if (scheduledDay == selectedDay) return true;
+          return scheduledDay.year == selectedDay.year &&
+                 scheduledDay.month == selectedDay.month &&
+                 scheduledDay.day == selectedDay.day;
         }
 
-        // Mostrar si es una tarea repetitiva y corresponde a ese día
-        if (t.repeatDays.isNotEmpty) {
+        // Mostrar si es una tarea repetitiva y corresponde a ese día de la semana
+        if (t.repeatDays.isNotEmpty && t.scheduledTime != null) {
           final dayOfWeek = _selectedDate!.weekday; // 1=Lunes, 7=Domingo
-          if (t.repeatDays.contains(dayOfWeek)) return true;
+          return t.repeatDays.contains(dayOfWeek);
         }
 
         return false;
@@ -1011,11 +1030,11 @@ class _TasksScreenState extends State<TasksScreen> {
 
   Color _getTaskColor(Task task) {
     if (task.collection == null) {
-      return AppColors.sky; // Color por defecto para tareas sin colección
+      return context.colors.accent; // Color por defecto para tareas sin colección
     }
     final collection = _collections.firstWhere(
       (c) => c.name == task.collection,
-      orElse: () => TaskCollection(name: '', color: AppColors.sky),
+      orElse: () => TaskCollection(name: '', color: context.colors.accent),
     );
     return collection.color;
   }
@@ -1030,7 +1049,7 @@ class _TasksScreenState extends State<TasksScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: Icon(Icons.chevron_left, color: AppColors.sky),
+                icon: Icon(Icons.chevron_left, color: context.colors.accent),
                 onPressed: () {
                   _weekPageController.previousPage(
                     duration: Duration(milliseconds: 300),
@@ -1051,9 +1070,9 @@ class _TasksScreenState extends State<TasksScreen> {
                       return Theme(
                         data: Theme.of(context).copyWith(
                           colorScheme: ColorScheme.light(
-                            primary: AppColors.sky,
+                            primary: context.colors.accent,
                             onPrimary: Colors.white,
-                            onSurface: AppColors.foreground,
+                            onSurface: context.colors.textPrimary,
                           ),
                         ),
                         child: child!,
@@ -1070,12 +1089,12 @@ class _TasksScreenState extends State<TasksScreen> {
                   '${_getMonthName(_selectedMonth.month)} ${_selectedMonth.year}',
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.foreground,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.chevron_right, color: AppColors.sky),
+                icon: Icon(Icons.chevron_right, color: context.colors.accent),
                 onPressed: () {
                   _weekPageController.nextPage(
                     duration: Duration(milliseconds: 300),
@@ -1097,7 +1116,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   child: Text(
                     day,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.mutedForeground,
+                      color: context.colors.textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1154,18 +1173,18 @@ class _TasksScreenState extends State<TasksScreen> {
                           margin: EdgeInsets.symmetric(horizontal: 2),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.sky
-                                : (isToday ? AppColors.sky.withOpacity(0.3) : Colors.transparent),
+                                ? context.colors.accent
+                                : (isToday ? context.colors.accent.withOpacity(0.3) : Colors.transparent),
                             shape: BoxShape.circle,
                             border: isToday && !isSelected
-                                ? Border.all(color: AppColors.sky, width: 2)
+                                ? Border.all(color: context.colors.accent, width: 2)
                                 : null,
                           ),
                           child: Center(
                             child: Text(
                               '${day.day}',
                               style: AppTypography.bodyMedium.copyWith(
-                                color: isSelected ? Colors.white : AppColors.foreground,
+                                color: isSelected ? Colors.white : context.colors.textPrimary,
                                 fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
@@ -1208,13 +1227,13 @@ class _TasksScreenState extends State<TasksScreen> {
                 'Colecciones',
                 style: AppTypography.bodyMedium.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.foreground,
+                  color: context.colors.textPrimary,
                 ),
               ),
               TextButton.icon(
                 onPressed: _addCollection,
-                icon: Icon(Icons.add, size: 16, color: AppColors.sky),
-                label: Text('Nueva', style: TextStyle(color: AppColors.sky)),
+                icon: Icon(Icons.add, size: 16, color: context.colors.accent),
+                label: Text('Nueva', style: TextStyle(color: context.colors.accent)),
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
@@ -1230,7 +1249,7 @@ class _TasksScreenState extends State<TasksScreen> {
             child: Row(
               children: [
                 // Opción "Todas"
-                _buildCollectionChip('Todas', null, AppColors.sky),
+                _buildCollectionChip('Todas', null, context.colors.accent),
                 SizedBox(width: 8),
                 // Colecciones creadas
                 ..._collections.map((collection) => Padding(
@@ -1256,10 +1275,10 @@ class _TasksScreenState extends State<TasksScreen> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : AppColors.background,
+          color: isSelected ? color : context.colors.appBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : AppColors.border,
+            color: isSelected ? color : context.colors.borderColor,
             width: 1,
           ),
         ),
@@ -1277,7 +1296,7 @@ class _TasksScreenState extends State<TasksScreen> {
             Text(
               label,
               style: AppTypography.bodySmall.copyWith(
-                color: isSelected ? Colors.white : AppColors.foreground,
+                color: isSelected ? Colors.white : context.colors.textPrimary,
               ),
             ),
             if (collection != null && isSelected) ...[
@@ -1305,10 +1324,10 @@ class _TasksScreenState extends State<TasksScreen> {
     final completedCount = filteredTasks.where((t) => t.isCompleted).length;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
         title: Text('Tareas'),
-        backgroundColor: Colors.white,
+        backgroundColor: context.colors.cardBackground,
         elevation: 0,
       ),
       body: Column(
@@ -1340,7 +1359,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     controller: _taskController,
                     decoration: InputDecoration(
                       hintText: 'Nueva tarea...',
-                      hintStyle: TextStyle(color: AppColors.mutedForeground),
+                      hintStyle: TextStyle(color: context.colors.textSecondary),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     ),
@@ -1349,7 +1368,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add_circle, color: AppColors.sky),
+                  icon: Icon(Icons.add_circle, color: context.colors.accent),
                   onPressed: _addTask,
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(),
@@ -1372,13 +1391,13 @@ class _TasksScreenState extends State<TasksScreen> {
                         Icon(
                           Icons.check_circle_outline,
                           size: 64,
-                          color: AppColors.mutedForeground.withOpacity(0.5),
+                          color: context.colors.textSecondary.withOpacity(0.5),
                         ),
                         SizedBox(height: AppConstants.paddingMedium),
                         Text(
                           'Sin tareas',
                           style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.mutedForeground,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ],
@@ -1405,7 +1424,7 @@ class _TasksScreenState extends State<TasksScreen> {
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: 20),
                             decoration: BoxDecoration(
-                              color: AppColors.destructive,
+                              color: context.colors.destructive,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(Icons.delete_outline, color: Colors.white),
@@ -1456,8 +1475,8 @@ class _TasksScreenState extends State<TasksScreen> {
                                                       ? TextDecoration.lineThrough
                                                       : null,
                                                   color: task.isCompleted
-                                                      ? AppColors.mutedForeground
-                                                      : AppColors.foreground,
+                                                      ? context.colors.textSecondary
+                                                      : context.colors.textPrimary,
                                                 ),
                                               ),
                                               if (isScheduled) ...[
@@ -1492,7 +1511,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                         // Botón de eliminar
                                         IconButton(
                                           icon: Icon(Icons.delete_outline, size: 20),
-                                          color: AppColors.destructive,
+                                          color: context.colors.destructive,
                                           padding: EdgeInsets.zero,
                                           constraints: BoxConstraints(
                                             minWidth: 32,
@@ -1549,8 +1568,8 @@ class _TasksScreenState extends State<TasksScreen> {
                                                           ? TextDecoration.lineThrough
                                                           : null,
                                                       color: subtask.isCompleted
-                                                          ? AppColors.mutedForeground
-                                                          : AppColors.foreground,
+                                                          ? context.colors.textSecondary
+                                                          : context.colors.textPrimary,
                                                     ),
                                                   ),
                                                 ),
@@ -1558,7 +1577,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                               // Botón eliminar subtarea
                                               IconButton(
                                                 icon: Icon(Icons.close, size: 14),
-                                                color: AppColors.mutedForeground,
+                                                color: context.colors.textSecondary,
                                                 padding: EdgeInsets.zero,
                                                 constraints: BoxConstraints(
                                                   minWidth: 24,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 
@@ -41,7 +41,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Por favor escribe tu comentario'),
-          backgroundColor: AppColors.destructive,
+          backgroundColor: context.colors.destructive,
         ),
       );
       return;
@@ -74,7 +74,7 @@ ${_feedbackController.text.trim()}
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('✅ Abriendo email...'),
-              backgroundColor: AppColors.sky,
+              backgroundColor: context.colors.accent,
               duration: Duration(seconds: 2),
             ),
           );
@@ -91,7 +91,7 @@ ${_feedbackController.text.trim()}
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('No se pudo abrir email'),
-            backgroundColor: AppColors.destructive,
+            backgroundColor: context.colors.destructive,
             duration: Duration(seconds: 2),
           ),
         );
@@ -102,10 +102,10 @@ ${_feedbackController.text.trim()}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
         title: Text('Enviar comentarios'),
-        backgroundColor: AppColors.card,
+        backgroundColor: context.colors.cardBackground,
         elevation: 0,
       ),
       body: ListView(
@@ -115,12 +115,12 @@ ${_feedbackController.text.trim()}
           // DESCRIPCIÓN
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: AppColors.sky.withOpacity(0.1),
+            color: context.colors.accent.withOpacity(0.1),
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.sky),
+                  Icon(Icons.info_outline, color: context.colors.accent),
                   SizedBox(width: AppConstants.paddingMedium),
                   Expanded(
                     child: Text(
@@ -152,7 +152,7 @@ ${_feedbackController.text.trim()}
                 value: _selectedCategory,
                 isExpanded: true,
                 underline: SizedBox(),
-                dropdownColor: AppColors.card,
+                dropdownColor: context.colors.cardBackground,
                 items: _categories.map((String category) {
                   return DropdownMenuItem<String>(
                     value: category,
@@ -202,7 +202,7 @@ ${_feedbackController.text.trim()}
             child: ElevatedButton(
               onPressed: _submitFeedback,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sky,
+                backgroundColor: context.colors.accent,
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

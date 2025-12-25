@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/screens/feedback_screen.dart';
@@ -26,10 +26,10 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
         title: Text('Acerca de'),
-        backgroundColor: AppColors.card,
+        backgroundColor: context.colors.cardBackground,
         elevation: 0,
       ),
       body: ListView(
@@ -46,27 +46,27 @@ class AboutScreen extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.sky.withOpacity(0.1),
+                    color: context.colors.accent.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.timer,
                     size: 40,
-                    color: AppColors.sky,
+                    color: context.colors.accent,
                   ),
                 ),
                 SizedBox(height: AppConstants.paddingSmall),
                 Text(
                   'Pomodoro Timer',
                   style: AppTypography.heading1.copyWith(
-                    color: AppColors.foreground,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
                   'Administra tu tiempo de manera efectiva',
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.mutedForeground,
+                    color: context.colors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -80,7 +80,7 @@ class AboutScreen extends StatelessWidget {
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
             child: ListTile(
-              leading: Icon(Icons.info_outline, color: AppColors.sky),
+              leading: Icon(Icons.info_outline, color: context.colors.accent),
               title: Text(
                 'Versión',
                 style: AppTypography.bodyMedium.copyWith(
@@ -101,7 +101,7 @@ class AboutScreen extends StatelessWidget {
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
             child: ListTile(
-              leading: Icon(Icons.feedback_outlined, color: AppColors.sky),
+              leading: Icon(Icons.feedback_outlined, color: context.colors.accent),
               title: Text(
                 'Enviar comentarios',
                 style: AppTypography.bodyMedium.copyWith(
@@ -112,7 +112,7 @@ class AboutScreen extends StatelessWidget {
                 'Comparte tu opinión sobre la app',
                 style: AppTypography.bodySmall,
               ),
-              trailing: Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+              trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -130,7 +130,7 @@ class AboutScreen extends StatelessWidget {
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
             child: ListTile(
-              leading: Icon(Icons.email_outlined, color: AppColors.sky),
+              leading: Icon(Icons.email_outlined, color: context.colors.accent),
               title: Text(
                 'Contacto',
                 style: AppTypography.bodyMedium.copyWith(
@@ -141,7 +141,7 @@ class AboutScreen extends StatelessWidget {
                 'Ponte en contacto con nosotros',
                 style: AppTypography.bodySmall,
               ),
-              trailing: Icon(Icons.chevron_right, color: AppColors.mutedForeground),
+              trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -161,7 +161,7 @@ class AboutScreen extends StatelessWidget {
             child: Text(
               '© 2025 Pomodoro Timer\nHecho con ❤️ con Flutter',
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.mutedForeground,
+                color: context.colors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),

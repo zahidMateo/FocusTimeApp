@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
+import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/services/notification_service.dart';
 import 'package:pomodoro_app/services/audio_service.dart';
 import 'package:pomodoro_app/services/focus_mode_service.dart';
@@ -299,6 +300,16 @@ class _TimerScreenState extends State<TimerScreen> {
         _completedCycles++;
       });
 
+      // Registrar sesión completada en el sistema de recompensas
+      final rewards = Provider.of<RewardsProvider>(context, listen: false);
+      final completedMinutes = settings.focusDuration.toInt();
+      final newAchievements = await rewards.onSessionCompleted(completedMinutes);
+
+      // Si se desbloquearon logros, mostrarlos
+      if (newAchievements.isNotEmpty && mounted) {
+        _showAchievementsUnlockedDialog(newAchievements);
+      }
+
       // Siempre mostrar diálogo de descanso después de un pomodoro
       _showBreakDialog();
     } else {
@@ -359,7 +370,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 _toggleTimer();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sky,
+                backgroundColor: context.colors.accent,
               ),
               child: Text('Comenzar ahora'),
             ),
@@ -432,7 +443,7 @@ class _TimerScreenState extends State<TimerScreen> {
               Text(
                 randomQuote['author']!,
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.mutedForeground,
+                  color: context.colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -446,13 +457,93 @@ class _TimerScreenState extends State<TimerScreen> {
                 _resetAllCycles();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.sky,
+                backgroundColor: context.colors.accent,
                 padding: EdgeInsets.symmetric(
                   horizontal: AppConstants.paddingLarge * 2,
                   vertical: AppConstants.paddingMedium,
                 ),
               ),
               child: Text('Comenzar nueva sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ┌───────────────────────────────────────────────────────────────────────────────┐
+  // │ Mostrar logros desbloqueados                                                 │
+  // └───────────────────────────────────────────────────────────────────────────────┘
+  void _showAchievementsUnlockedDialog(List<Achievement> achievements) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.emoji_events, color: context.colors.accent, size: 32),
+              SizedBox(width: 8),
+              Text(
+                '¡Logro${achievements.length > 1 ? 's' : ''} Desbloqueado${achievements.length > 1 ? 's' : ''}!',
+                style: AppTypography.heading2,
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: achievements.map((achievement) {
+              return Container(
+                margin: EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.colors.accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: context.colors.accent.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      achievement.title,
+                      style: AppTypography.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      achievement.description,
+                      style: AppTypography.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.star, color: context.colors.accent, size: 20),
+                        SizedBox(width: 4),
+                        Text(
+                          '+${achievement.points} puntos',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: context.colors.accent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Continuar'),
             ),
           ],
         );
@@ -553,13 +644,13 @@ class _TimerScreenState extends State<TimerScreen> {
                     '🔒 El modo concentración está activo. Debes pausar el timer para poder salir.',
                   ),
                   duration: Duration(seconds: 3),
-                  backgroundColor: AppColors.destructive,
+                  backgroundColor: context.colors.destructive,
                 ),
               );
             }
           },
           child: Scaffold(
-            backgroundColor: AppColors.card,
+            backgroundColor: context.colors.cardBackground,
             body: SafeArea(
               child: Column(
                 children: [
@@ -570,16 +661,16 @@ class _TimerScreenState extends State<TimerScreen> {
                       padding: EdgeInsets.symmetric(
                         vertical: AppConstants.paddingSmall,
                       ),
-                      color: AppColors.sky.withOpacity(0.2),
+                      color: context.colors.accent.withOpacity(0.2),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.lock, size: 16, color: AppColors.sky),
+                          Icon(Icons.lock, size: 16, color: context.colors.accent),
                           SizedBox(width: AppConstants.paddingSmall),
                           Text(
                             'Modo Concentración Activo',
                             style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.sky,
+                              color: context.colors.accent,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -636,7 +727,7 @@ class _TimerScreenState extends State<TimerScreen> {
               value: 1.0,
               strokeWidth: circleSize * 0.03, // 3% del círculo
               backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.muted),
+              valueColor: AlwaysStoppedAnimation<Color>(context.colors.borderColor.withOpacity(0.3)),
             ),
           ),
           SizedBox(
@@ -646,7 +737,7 @@ class _TimerScreenState extends State<TimerScreen> {
               value: _progress,
               strokeWidth: circleSize * 0.03, // 3% del círculo
               backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.sky),
+              valueColor: AlwaysStoppedAnimation<Color>(context.colors.accent),
               strokeCap: StrokeCap.round,
             ),
           ),
@@ -654,11 +745,11 @@ class _TimerScreenState extends State<TimerScreen> {
             width: circleSize - 20,
             height: circleSize - 20,
             decoration: BoxDecoration(
-              color: AppColors.card,
+              color: context.colors.cardBackground,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.sky.withOpacity(0.15),
+                  color: context.colors.accent.withOpacity(0.15),
                   blurRadius: 20,
                   offset: Offset(0, 8),
                 ),
@@ -670,7 +761,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 Text(
                   _formatTime(_remainingSeconds),
                   style: AppTypography.timerDisplay.copyWith(
-                    color: AppColors.sky,
+                    color: context.colors.accent,
                     fontSize: fontSize,
                     height: 1.0,
                   ),
@@ -679,7 +770,7 @@ class _TimerScreenState extends State<TimerScreen> {
                 Text(
                   _getStatusText(),
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.mutedForeground,
+                    color: context.colors.textSecondary,
                     fontSize: fontSize * 0.25, // 25% del tiempo
                   ),
                   textAlign: TextAlign.center,
@@ -721,18 +812,20 @@ class _TimerScreenState extends State<TimerScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildCircleButton(
+          context: context,
           icon: _isRunning ? Icons.pause : Icons.play_arrow,
-          backgroundColor: AppColors.card,
-          iconColor: AppColors.sky,
+          backgroundColor: context.colors.cardBackground,
+          iconColor: context.colors.accent,
           size: buttonSize,
           onPressed: _toggleTimer,
           hasBorder: true,
         ),
         SizedBox(width: AppConstants.paddingLarge),
         _buildCircleButton(
+          context: context,
           icon: Icons.refresh,
-          backgroundColor: AppColors.card,
-          iconColor: AppColors.sky,
+          backgroundColor: context.colors.cardBackground,
+          iconColor: context.colors.accent,
           size: buttonSize,
           onPressed: _resetTimer,
           hasBorder: true,
@@ -742,6 +835,7 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   Widget _buildCircleButton({
+    required BuildContext context,
     required IconData icon,
     required Color backgroundColor,
     required Color iconColor,
@@ -753,11 +847,11 @@ class _TimerScreenState extends State<TimerScreen> {
       color: backgroundColor,
       shape: CircleBorder(
         side: hasBorder
-            ? BorderSide(color: AppColors.border, width: 2)
+            ? BorderSide(color: context.colors.borderColor, width: 2)
             : BorderSide.none,
       ),
       elevation: hasBorder ? 4 : 8,
-      shadowColor: AppColors.sky.withOpacity(0.2),
+      shadowColor: context.colors.accent.withOpacity(0.2),
       child: InkWell(
         onTap: onPressed,
         customBorder: CircleBorder(),
@@ -786,10 +880,10 @@ class _TimerScreenState extends State<TimerScreen> {
         vertical: AppConstants.paddingMedium,
       ),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.cardBackground,
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         border: Border.all(
-          color: AppColors.border,
+          color: context.colors.borderColor,
           width: 1,
         ),
       ),
@@ -799,13 +893,13 @@ class _TimerScreenState extends State<TimerScreen> {
           Text(
             'Ciclos completados: ',
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.mutedForeground,
+              color: context.colors.textSecondary,
             ),
           ),
           Text(
             '$_completedCycles de ${settings.pomodorosBeforeLongBreak}',
             style: AppTypography.bodyMedium.copyWith(
-              color: AppColors.sky,
+              color: context.colors.accent,
               fontWeight: FontWeight.w600,
             ),
           ),

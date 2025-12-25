@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pomodoro_app/global/app_colors.dart';
+import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/screens/settings_screens.dart';
 import 'package:pomodoro_app/screens/timer_screen.dart';
 import 'package:pomodoro_app/screens/tasks_screen.dart';
+import 'package:pomodoro_app/screens/rewards_screen.dart';
 
-// ═══════════════════════════════════════════════════════════════════════════════════
+// ═════════ ══════════════════════════════════════════════════════════════════════════
 // MAIN SCREEN - PANTALLA PRINCIPAL CON NAVEGACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════════
 //
@@ -54,8 +55,9 @@ class _MainScreenState extends State<MainScreen> {
   // Indica qué pantalla está visible:
   // 0 = Timer
   // 1 = Estadísticas
-  // 2 = Tareas
+  // 2 = Recompensas
   // 3 = Configuración
+  // (Tareas temporalmente oculto)
   int _currentIndex = 0;
 
   // ─── Lista de pantallas ───
@@ -66,7 +68,8 @@ class _MainScreenState extends State<MainScreen> {
     _PlaceholderScreen(
         title: 'Estadísticas',
         icon: Icons.bar_chart), // [1] Stats - Por implementar
-    TasksScreen(), // [2] Tareas - Gestión de tareas diarias
+    RewardsScreen(), // [2] Recompensas - Logros y Tienda
+    // TasksScreen(), // [3] Tareas - Gestión de tareas diarias (TEMPORALMENTE OCULTO)
     SettingsScreen(), // [3] Configuración - Pantalla de ajustes
   ];
 
@@ -129,12 +132,12 @@ class _MainScreenState extends State<MainScreen> {
         // height: Altura del menú de navegación en píxeles
         height: 70,
 
-        // backgroundColor: Color de fondo del menú
-        backgroundColor: AppColors.card, // Blanco
+        // backgroundColor: Color de fondo del menú (respeta tema oscuro)
+        backgroundColor: Theme.of(context).colorScheme.surface,
 
         // indicatorColor: Color del fondo del botón seleccionado
-        // withOpacity(0.2) = lavanda con 20% de opacidad (muy suave)
-        indicatorColor: AppColors.primary.withOpacity(0.2),
+        // withOpacity(0.2) = color primario con 20% de opacidad (muy suave)
+        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
 
         // labelBehavior: Controla cuándo mostrar las etiquetas (Timer, Stats, etc.)
         // alwaysShow = las etiquetas siempre son visibles
@@ -168,13 +171,22 @@ class _MainScreenState extends State<MainScreen> {
           ),
 
           // ───────────────────────────────────────────────────────────────────
-          // [2] TAREAS - Lista de tareas pendientes
+          // [2] RECOMPENSAS - Logros y Tienda
           // ───────────────────────────────────────────────────────────────────
           NavigationDestination(
-            icon: Icon(Icons.list_outlined),
-            selectedIcon: Icon(Icons.list),
-            label: 'Tareas',
+            icon: Icon(Icons.card_giftcard_outlined),
+            selectedIcon: Icon(Icons.card_giftcard),
+            label: 'Premios',
           ),
+
+          // ───────────────────────────────────────────────────────────────────
+          // [3] TAREAS - Lista de tareas pendientes (TEMPORALMENTE OCULTO)
+          // ───────────────────────────────────────────────────────────────────
+          // NavigationDestination(
+          //   icon: Icon(Icons.list_outlined),
+          //   selectedIcon: Icon(Icons.list),
+          //   label: 'Tareas',
+          // ),
 
           // ───────────────────────────────────────────────────────────────────
           // [3] CONFIGURACIÓN - Ajustes de la app
@@ -242,7 +254,7 @@ class _PlaceholderScreen extends StatelessWidget {
             Icon(
               icon,
               size: 100, // Ícono de 100x100 píxeles
-              color: AppColors.primary, // Color lavanda
+              color: context.colors.primary, // Color primario (respeta tema)
             ),
             SizedBox(height: 20), // Espacio de 20 píxeles
 
