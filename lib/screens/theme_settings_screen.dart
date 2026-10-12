@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
@@ -8,7 +9,7 @@ import 'package:pomodoro_app/models/settings_provider.dart';
 import 'package:pomodoro_app/models/rewards_provider.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
-// THEME SETTINGS SCREEN - CONFIGURACIÓN DE TEMAS DE COLOR
+// THEME SETTINGS SCREEN - TEMAS DE COLOR (STITCH FOCUS FLOW)
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 class ThemeSettingsScreen extends StatelessWidget {
@@ -22,15 +23,21 @@ class ThemeSettingsScreen extends StatelessWidget {
           {
             'id': 'default',
             'name': 'Por Defecto',
-            'description': 'Azul clásico',
-            'colors': {'primary': AppColorThemes.defaultPrimary, 'accent': AppColorThemes.defaultAccent},
+            'description': 'Azul cobalto y cielo de enfoque',
+            'colors': {
+              'primary': AppColorThemes.defaultPrimary,
+              'accent': AppColorThemes.defaultAccent,
+            },
             'locked': false,
           },
           {
             'id': 'ocean',
             'name': 'Océano',
             'description': 'Azules y turquesas relajantes',
-            'colors': {'primary': AppColorThemes.oceanPrimary, 'accent': AppColorThemes.oceanAccent},
+            'colors': {
+              'primary': AppColorThemes.oceanPrimary,
+              'accent': AppColorThemes.oceanAccent,
+            },
             'locked': !rewards.isItemPurchased('theme_ocean'),
             'price': 150,
           },
@@ -38,7 +45,10 @@ class ThemeSettingsScreen extends StatelessWidget {
             'id': 'forest',
             'name': 'Bosque',
             'description': 'Verdes naturales y frescos',
-            'colors': {'primary': AppColorThemes.forestPrimary, 'accent': AppColorThemes.forestAccent},
+            'colors': {
+              'primary': AppColorThemes.forestPrimary,
+              'accent': AppColorThemes.forestAccent,
+            },
             'locked': !rewards.isItemPurchased('theme_forest'),
             'price': 150,
           },
@@ -46,7 +56,10 @@ class ThemeSettingsScreen extends StatelessWidget {
             'id': 'sunset',
             'name': 'Atardecer',
             'description': 'Naranjas y rosas cálidos',
-            'colors': {'primary': AppColorThemes.sunsetPrimary, 'accent': AppColorThemes.sunsetAccent},
+            'colors': {
+              'primary': AppColorThemes.sunsetPrimary,
+              'accent': AppColorThemes.sunsetAccent,
+            },
             'locked': !rewards.isItemPurchased('theme_sunset'),
             'price': 150,
           },
@@ -54,7 +67,10 @@ class ThemeSettingsScreen extends StatelessWidget {
             'id': 'lavender',
             'name': 'Lavanda',
             'description': 'Morados y lilas suaves',
-            'colors': {'primary': AppColorThemes.lavenderPrimary, 'accent': AppColorThemes.lavenderAccent},
+            'colors': {
+              'primary': AppColorThemes.lavenderPrimary,
+              'accent': AppColorThemes.lavenderAccent,
+            },
             'locked': !rewards.isItemPurchased('theme_lavender'),
             'price': 150,
           },
@@ -63,36 +79,69 @@ class ThemeSettingsScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: context.colors.appBackground,
           appBar: AppBar(
-            title: Text('Temas de Color'),
+            title: Text(
+              'Temas de Color',
+              style: AppTypography.heading2,
+            ),
             backgroundColor: context.colors.cardBackground,
             elevation: 0,
+            centerTitle: true,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1.0),
+              child: Container(
+                color: AppColors.border,
+                height: 1.0,
+              ),
+            ),
           ),
           body: ListView(
-            padding: EdgeInsets.all(AppConstants.paddingMedium),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.paddingMedium,
+              vertical: AppConstants.paddingMedium,
+            ),
             children: [
-              // Descripción
-              Padding(
-                padding: EdgeInsets.only(bottom: AppConstants.paddingLarge),
-                child: Text(
-                  'Personaliza los colores de la aplicación',
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
+              Text(
+                'Personaliza los colores de acento y botones de la aplicación',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: context.colors.textSecondary,
                 ),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: AppConstants.paddingLarge),
 
-              // Lista de temas
               ...themes.map((theme) {
                 final isSelected = settings.selectedTheme == theme['id'];
                 final isLocked = theme['locked'] as bool;
                 final colors = theme['colors'] as Map<String, Color>;
+                final price = theme['price'] as int?;
 
-                return Card(
-                  margin: EdgeInsets.only(bottom: AppConstants.paddingSmall),
-                  color: isSelected
-                      ? context.colors.accent.withOpacity(0.1)
-                      : context.colors.cardBackground,
-                  child: ListTile(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primarySoft
+                        : context.colors.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: isSelected ? 1.5 : 1.0,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(15, 23, 42, 0.03),
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     leading: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -103,12 +152,18 @@ class ThemeSettingsScreen extends StatelessWidget {
                             color: colors['primary'],
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: context.colors.borderColor,
-                              width: 1,
+                              color: Colors.white,
+                              width: 2,
                             ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color.fromRGBO(15, 23, 42, 0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Container(
                           width: 24,
                           height: 24,
@@ -116,9 +171,15 @@ class ThemeSettingsScreen extends StatelessWidget {
                             color: colors['accent'],
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: context.colors.borderColor,
-                              width: 1,
+                              color: Colors.white,
+                              width: 2,
                             ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color.fromRGBO(15, 23, 42, 0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -128,32 +189,42 @@ class ThemeSettingsScreen extends StatelessWidget {
                         Expanded(
                           child: Text(
                             theme['name'] as String,
-                            style: AppTypography.bodyLarge.copyWith(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected
-                                  ? context.colors.accent
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: isLocked
+                                  ? AppColors.mutedForeground
+                                  : isSelected
+                                  ? AppColors.primary
                                   : context.colors.textPrimary,
                             ),
                           ),
                         ),
-                        if (isLocked) ...[
+                        if (isLocked && price != null) ...[
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: context.colors.textSecondary.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(9999),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.lock_outline,
-                                    size: 12, color: context.colors.textSecondary),
-                                SizedBox(width: 4),
+                                const Icon(
+                                  Icons.lock_outline_rounded,
+                                  size: 13,
+                                  color: AppColors.mutedForeground,
+                                ),
+                                const SizedBox(width: 4),
                                 Text(
-                                  '${theme['price']}',
+                                  '$price pts',
                                   style: AppTypography.bodySmall.copyWith(
-                                    color: context.colors.textSecondary,
-                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.mutedForeground,
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 11,
                                   ),
                                 ),
@@ -170,26 +241,34 @@ class ThemeSettingsScreen extends StatelessWidget {
                       ),
                     ),
                     trailing: isSelected
-                        ? Icon(Icons.check_circle, color: context.colors.accent)
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.primary,
+                            size: 22,
+                          )
                         : null,
                     onTap: () {
                       if (isLocked) {
-                        _showLockedThemeDialog(context, theme['name'] as String,
-                            theme['price'] as int);
+                        _showLockedThemeDialog(
+                          context,
+                          theme['name'] as String,
+                          theme['price'] as int,
+                        );
                       } else {
                         settings.setSelectedTheme(theme['id'] as String);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Tema ${theme['name']} aplicado'),
-                            backgroundColor: context.colors.accent,
-                            duration: Duration(seconds: 2),
+                            backgroundColor: AppColors.primary,
+                            duration: const Duration(seconds: 2),
                           ),
                         );
                       }
                     },
                   ),
+                  ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -197,20 +276,39 @@ class ThemeSettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showLockedThemeDialog(BuildContext context, String themeName, int price) {
+  void _showLockedThemeDialog(
+    BuildContext context,
+    String themeName,
+    int price,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: Text(
-          '🔒 Tema Bloqueado',
+          'Tema Bloqueado',
           style: AppTypography.heading2,
           textAlign: TextAlign.center,
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.palette, size: 64, color: context.colors.accent),
-            SizedBox(height: 16),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.palette_outlined,
+                size: 32,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               '$themeName está bloqueado.',
               style: AppTypography.bodyLarge.copyWith(
@@ -218,7 +316,7 @@ class ThemeSettingsScreen extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Desbloquea este tema en la tienda por $price puntos.',
               style: AppTypography.bodyMedium,
@@ -226,10 +324,19 @@ class ThemeSettingsScreen extends StatelessWidget {
             ),
           ],
         ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cerrar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
+            child: const Text('Entendido'),
           ),
         ],
       ),

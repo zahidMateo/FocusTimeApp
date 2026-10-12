@@ -69,35 +69,25 @@ class AppTheme {
     //
     // Cada color tiene su "onColor" (texto que va sobre ese color)
     // Ejemplo: primary = lavanda, onPrimary = texto claro para que se lea bien
-
     colorScheme: ColorScheme.light(
       // ─── Colores principales ───
       primary: AppColors.primary, // Lavanda - Color de marca principal
       onPrimary: AppColors.primaryForeground, // Texto sobre lavanda
       primaryContainer: AppColors.lavender, // Variante más clara/oscura
-
       // ─── Colores secundarios ───
       secondary: AppColors.secondary, // Mint - Color de apoyo
       onSecondary: AppColors.secondaryForeground, // Texto sobre mint
       secondaryContainer: AppColors.mint, // Variante del secundario
-
       // ─── Superficies (Cards, Sheets, etc) ───
       surface: AppColors.card, // Blanco para cards y superficies
       onSurface: AppColors.foreground, // Texto sobre superficies
-      surfaceContainerHighest: AppColors.muted, // Superficie con más elevación
-
-      // ─── Fondos ───
-      background: AppColors.background, // Fondo general de la app
-      onBackground: AppColors.foreground, // Texto sobre el fondo
-
+      surfaceContainerHighest: AppColors.muted, // Texto sobre el fondo
       // ─── Error/Destructivo ───
       error: AppColors.destructive, // Rojo para errores
       onError: AppColors.destructiveForeground, // Texto sobre error (blanco)
-
       // ─── Bordes y contornos ───
       outline: AppColors.border, // Color de bordes principales
       outlineVariant: AppColors.input, // Variante más sutil de bordes
-
       // ─── Color terciario ───
       tertiary: AppColors.sky, // Sky - Color de acento adicional
       onTertiary: AppColors.accentForeground, // Texto sobre sky
@@ -107,7 +97,6 @@ class AppTheme {
     // ║ APP BAR - Barra superior de navegación                                       ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define cómo se ve la barra de título en todas las pantallas
-
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.card, // Fondo blanco
       foregroundColor: AppColors.foreground, // Texto e iconos oscuros
@@ -115,7 +104,6 @@ class AppTheme {
       centerTitle: true, // Título centrado
       surfaceTintColor: Colors.transparent, // Sin tinte de color
       shadowColor: AppColors.border, // Color de sombra si hay
-
       // Estilo del título
       titleTextStyle: TextStyle(
         color: AppColors.foreground,
@@ -129,88 +117,89 @@ class AppTheme {
     // ║ SCAFFOLD - Estructura básica de cada pantalla                                ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // El Scaffold es el "lienzo" donde dibujas cada pantalla
-
     scaffoldBackgroundColor: AppColors.background,
 
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
-    // ║ TEXT THEME - Estilos de texto de Material Design 3                           ║
+    // ║ NAVIGATION BAR - Barra inferior Stitch Focus Flow                             ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-    // Mapea nuestros estilos personalizados a los nombres de Material Design
-    // Flutter usa automáticamente estos estilos en widgets como Text()
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.card,
+      elevation: 0,
+      indicatorColor: AppColors.primarySoft,
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(9999),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return IconThemeData(color: AppColors.primary, size: 24);
+        }
+        return IconThemeData(color: AppColors.mutedForeground, size: 24);
+      }),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppTypography.labelSmall.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          );
+        }
+        return AppTypography.labelSmall.copyWith(
+          color: AppColors.mutedForeground,
+        );
+      }),
+    ),
 
-    textTheme: GoogleFonts.poppinsTextTheme(
+    // ╔═══════════════════════════════════════════════════════════════════════════════╗
+    // ║ TEXT THEME - Tipografías Outfit + Inter (Stitch Focus Flow)                   ║
+    // ╚═══════════════════════════════════════════════════════════════════════════════╝
+    textTheme: GoogleFonts.interTextTheme(
       TextTheme(
-        // displayLarge: Texto decorativo muy grande (60px)
-        // Usado en: El timer principal
         displayLarge: AppTypography.timerDisplay,
-
-        // headlineLarge: Títulos principales (24px)
-        // Usado en: Encabezados de secciones
+        displayMedium: AppTypography.timerDisplayMobile,
         headlineLarge: AppTypography.heading1,
-
-        // headlineMedium: Subtítulos (20px)
-        // Usado en: Subtítulos y títulos de cards
         headlineMedium: AppTypography.heading2,
-
-        // bodyLarge: Texto de párrafo normal grande (16px)
-        // Usado en: Contenido principal
+        headlineSmall: AppTypography.heading3,
         bodyLarge: AppTypography.bodyLarge,
-
-        // bodyMedium: Texto de párrafo mediano (14px)
-        // Usado en: Descripciones, subtítulos
-        bodyMedium: AppTypography.bodySmall,
-
-        // bodySmall: Texto pequeño (12px)
-        // Usado en: Notas, texto legal
-        bodySmall: AppTypography.caption,
-
-        // labelLarge: Etiquetas (14px)
-        // Usado en: Labels de formularios
+        bodyMedium: AppTypography.bodyMedium,
+        bodySmall: AppTypography.bodySmall,
         labelLarge: AppTypography.label,
+        labelMedium: AppTypography.labelMedium,
+        labelSmall: AppTypography.labelSmall,
       ),
     ),
 
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
-    // ║ CARD - Tarjetas que contienen información                                    ║
+    // ║ CARD - Tarjetas elevadas Stitch (16px radius + borde 1px)                     ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-    // Define cómo se ven TODOS los Cards en la app
-
     cardTheme: CardThemeData(
-      color: AppColors.card, // Fondo blanco
-      elevation: 0, // Sin sombra (diseño flat moderno)
+      color: AppColors.card,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        side: BorderSide(
-          color: AppColors.border, // Borde sutil gris
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(16.0),
+        side: const BorderSide(color: AppColors.border, width: 1),
       ),
-      margin: EdgeInsets.all(AppConstants.paddingMedium),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingMedium,
+        vertical: AppConstants.paddingSmall,
+      ),
     ),
 
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
-    // ║ ELEVATED BUTTON - Botón elevado con fondo sólido                             ║
+    // ║ ELEVATED BUTTON - Botones estilo pill (9999px) Stitch                         ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-    // Define cómo se ven TODOS los ElevatedButton en la app
-    // Ejemplo: ElevatedButton(onPressed: () {}, child: Text('Click'))
-
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary, // Fondo lavanda
-        foregroundColor: AppColors.primaryForeground, // Texto claro
-        elevation: 0, // Sin sombra (diseño flat)
-        padding: EdgeInsets.symmetric(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.primaryForeground,
+        elevation: 0,
+        minimumSize: const Size(64, 52),
+        padding: const EdgeInsets.symmetric(
           horizontal: AppConstants.paddingLarge,
           vertical: AppConstants.paddingMedium,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+          borderRadius: BorderRadius.circular(9999),
         ),
-        textStyle: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
-        ),
+        textStyle: AppTypography.button,
       ),
     ),
 
@@ -219,7 +208,6 @@ class AppTheme {
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define cómo se ven TODOS los OutlinedButton en la app
     // Ejemplo: OutlinedButton(onPressed: () {}, child: Text('Click'))
-
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary, // Texto lavanda
@@ -239,7 +227,6 @@ class AppTheme {
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define cómo se ven TODOS los TextButton en la app
     // Ejemplo: TextButton(onPressed: () {}, child: Text('Click'))
-
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary, // Texto lavanda
@@ -254,7 +241,6 @@ class AppTheme {
     // ║ ICON - Configuración por defecto de iconos                                   ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define color y tamaño por defecto de TODOS los Icon en la app
-
     iconTheme: IconThemeData(
       color: AppColors.foreground, // Color oscuro
       size: AppConstants.buttonIconSize, // 32px
@@ -265,7 +251,6 @@ class AppTheme {
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define cómo se ven TODOS los Divider en la app
     // Ejemplo: Divider()
-
     dividerTheme: DividerThemeData(
       color: AppColors.border, // Color gris sutil
       thickness: 1, // Grosor de 1 píxel
@@ -277,11 +262,9 @@ class AppTheme {
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
     // Define cómo se ven TODOS los TextField en la app
     // Ejemplo: TextField(decoration: InputDecoration(labelText: 'Nombre'))
-
     inputDecorationTheme: InputDecorationTheme(
       filled: true, // Fondo relleno
       fillColor: AppColors.muted, // Fondo gris claro
-
       // Borde normal (cuando no está seleccionado)
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
@@ -298,7 +281,9 @@ class AppTheme {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppConstants.borderRadius),
         borderSide: BorderSide(
-            color: AppColors.ring, width: 2), // Borde lavanda más grueso
+          color: AppColors.ring,
+          width: 2,
+        ), // Borde lavanda más grueso
       ),
 
       // Espaciado interno del texto
@@ -318,35 +303,27 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ COLOR SCHEME OSCURO - Paleta de colores para modo oscuro                     ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     colorScheme: ColorScheme.dark(
       // ─── Colores principales ───
       primary: AppColors.lavender, // Lavanda (más brillante en oscuro)
       onPrimary: Color(0xFF1A1A2E), // Texto oscuro sobre lavanda
-      primaryContainer: AppColors.lavender.withOpacity(0.3),
+      primaryContainer: AppColors.lavender.withValues(alpha: 0.3),
 
       // ─── Colores secundarios ───
       secondary: AppColors.mint, // Mint
       onSecondary: Color(0xFF1A1A2E), // Texto oscuro sobre mint
-      secondaryContainer: AppColors.mint.withOpacity(0.3),
+      secondaryContainer: AppColors.mint.withValues(alpha: 0.3),
 
       // ─── Superficies (Cards, Sheets, etc) ───
       surface: Color(0xFF1E1E2E), // Superficie oscura (cards)
       onSurface: Color(0xFFE5E5F0), // Texto claro sobre superficies
-      surfaceContainerHighest: Color(0xFF2A2A3E), // Superficie elevada
-
-      // ─── Fondos ───
-      background: Color(0xFF121218), // Fondo principal muy oscuro
-      onBackground: Color(0xFFE5E5F0), // Texto claro sobre fondo
-
+      surfaceContainerHighest: Color(0xFF2A2A3E), // Texto claro sobre fondo
       // ─── Error/Destructivo ───
       error: Color(0xFFFF6B6B), // Rojo más suave para oscuro
       onError: Color(0xFF1A1A2E), // Texto oscuro sobre error
-
       // ─── Bordes y contornos ───
       outline: Color(0xFF3A3A4E), // Bordes sutiles oscuros
       outlineVariant: Color(0xFF2A2A3E), // Variante de bordes
-
       // ─── Color terciario ───
       tertiary: AppColors.sky, // Sky
       onTertiary: Color(0xFF1A1A2E), // Texto oscuro sobre sky
@@ -355,7 +332,6 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ APP BAR OSCURO                                                                ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     appBarTheme: AppBarTheme(
       backgroundColor: Color(0xFF1E1E2E), // Fondo oscuro
       foregroundColor: Color(0xFFE5E5F0), // Texto claro
@@ -374,13 +350,11 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ SCAFFOLD OSCURO                                                               ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     scaffoldBackgroundColor: Color(0xFF121218),
 
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ TEXT THEME OSCURO                                                             ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     textTheme: GoogleFonts.poppinsTextTheme(
       TextTheme(
         displayLarge: AppTypography.timerDisplay.copyWith(
@@ -392,25 +366,16 @@ class AppTheme {
         headlineMedium: AppTypography.heading2.copyWith(
           color: Color(0xFFE5E5F0),
         ),
-        bodyLarge: AppTypography.bodyLarge.copyWith(
-          color: Color(0xFFD0D0E0),
-        ),
-        bodyMedium: AppTypography.bodySmall.copyWith(
-          color: Color(0xFFD0D0E0),
-        ),
-        bodySmall: AppTypography.caption.copyWith(
-          color: Color(0xFFA0A0B5),
-        ),
-        labelLarge: AppTypography.label.copyWith(
-          color: Color(0xFFD0D0E0),
-        ),
+        bodyLarge: AppTypography.bodyLarge.copyWith(color: Color(0xFFD0D0E0)),
+        bodyMedium: AppTypography.bodySmall.copyWith(color: Color(0xFFD0D0E0)),
+        bodySmall: AppTypography.caption.copyWith(color: Color(0xFFA0A0B5)),
+        labelLarge: AppTypography.label.copyWith(color: Color(0xFFD0D0E0)),
       ),
     ),
 
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ CARD OSCURO                                                                   ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     cardTheme: CardThemeData(
       color: Color(0xFF1E1E2E), // Fondo de card oscuro
       elevation: 0,
@@ -427,7 +392,6 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ BOTONES OSCUROS                                                               ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.lavender,
@@ -475,7 +439,6 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ ICONOS OSCUROS                                                                ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     iconTheme: IconThemeData(
       color: Color(0xFFE5E5F0),
       size: AppConstants.buttonIconSize,
@@ -484,7 +447,6 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ DIVIDER OSCURO                                                                ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     dividerTheme: DividerThemeData(
       color: Color(0xFF3A3A4E),
       thickness: 1,
@@ -494,7 +456,6 @@ class AppTheme {
     // ╔═══════════════════════════════════════════════════════════════════════════════╗
     // ║ INPUT DECORATION OSCURO                                                       ║
     // ╚═══════════════════════════════════════════════════════════════════════════════╝
-
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Color(0xFF2A2A3E),

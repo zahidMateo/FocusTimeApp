@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 // APP THEME EXTENSIONS - EXTENSIONES PARA ACCEDER A COLORES DEL TEMA ACTUAL
@@ -38,33 +39,26 @@ extension ThemeExtension on BuildContext {
 // └─────────────────────────────────────────────────────────────────────────────────┘
 // Proporciona nombres más intuitivos basados en el uso de colores en la app
 extension ColorSchemeExtension on ColorScheme {
-  // ─── Colores principales ───
+  // ─── Colores principales (Stitch Focus Flow) ───
 
-  /// Color de acento principal (Sky en claro, adaptado en oscuro)
-  /// Usado para: iconos destacados, elementos de acción
-  Color get accent => tertiary;
+  /// Color de acento principal (Cobalt Focus Blue #2563EB)
+  Color get accent => brightness == Brightness.dark ? const Color(0xFF60A5FA) : AppColors.primary;
 
-  /// Color de texto principal
-  /// Usado para: títulos, texto importante
+  /// Color de texto principal (Deep Slate #0F172A)
   Color get textPrimary => onSurface;
 
-  /// Color de texto secundario / desactivado
-  /// Usado para: subtítulos, texto de ayuda
-  Color get textSecondary => onSurface.withOpacity(0.6);
+  /// Color de texto secundario (Mid Slate #475569)
+  Color get textSecondary => brightness == Brightness.dark ? const Color(0xFF94A3B8) : AppColors.mutedForeground;
 
-  /// Color de fondo de cards y superficies
-  /// Usado para: Cards, AppBar, superficies elevadas
-  Color get cardBackground => surface;
+  /// Color de fondo de cards y superficies elevadas (Pure White #FFFFFF)
+  Color get cardBackground => brightness == Brightness.dark ? const Color(0xFF1E293B) : AppColors.card;
 
-  /// Color de fondo principal de la app
-  /// Usado para: Scaffold background
-  Color get appBackground => background;
+  /// Color de fondo principal del canvas (Focus Flow Canvas #FAF8FF)
+  Color get appBackground => brightness == Brightness.dark ? const Color(0xFF131B2E) : AppColors.background;
 
-  /// Color para elementos destructivos (eliminar, resetear)
-  /// Usado para: botones de eliminar, advertencias
+  /// Color para elementos destructivos (Vivid Crimson #EF4444)
   Color get destructive => error;
 
-  /// Color para bordes
-  /// Usado para: bordes de cards, dividers
-  Color get borderColor => outline;
+  /// Color para bordes (1px subtle border #E2E8F0)
+  Color get borderColor => brightness == Brightness.dark ? const Color(0xFF283044) : AppColors.border;
 }

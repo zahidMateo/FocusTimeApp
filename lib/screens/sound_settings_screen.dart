@@ -9,16 +9,7 @@ import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/services/audio_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
-// SOUND SETTINGS SCREEN - CONFIGURACIÓN DE SONIDOS AMBIENTALES
-// ═══════════════════════════════════════════════════════════════════════════════════
-//
-// Pantalla dedicada para configurar sonidos ambientales que se reproducen durante el timer.
-//
-// ¿POR QUÉ UNA PANTALLA SEPARADA?
-// - Permite al usuario explorar y seleccionar sonidos sin interrupciones
-// - Puede previsualizar sonidos antes de guardar
-// - Validación solo ocurre UNA VEZ al guardar (no en cada cambio)
-//
+// SOUND SETTINGS SCREEN - CONFIGURACIÓN DE SONIDOS (STITCH FOCUS FLOW)
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 class SoundSettingsScreen extends StatefulWidget {
@@ -29,43 +20,51 @@ class SoundSettingsScreen extends StatefulWidget {
 }
 
 class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // ESTADO TEMPORAL
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // Guardamos valores temporales hasta que el usuario presione "Guardar"
-
   String _selectedSound = 'Ninguno';
   double _soundVolume = 0.7;
-  bool _isPreviewPlaying = false; // ¿Está sonando la previsualización?
+  bool _isPreviewPlaying = false;
 
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // LISTA DE SONIDOS DISPONIBLES
-  // ═════════════════════════════════════════════════════════════════════════════════
-
-  // Sonidos GRATUITOS (disponibles siempre)
   final List<Map<String, dynamic>> _freeSounds = [
-    {'name': 'Ninguno', 'icon': Icons.volume_off, 'premium': false},
-    {'name': 'Ruido blanco', 'icon': Icons.waves, 'premium': false},
-    {'name': 'Ruido marrón', 'icon': Icons.water, 'premium': false},
-    {'name': 'Ruido rosa', 'icon': Icons.grain, 'premium': false},
+    {'name': 'Ninguno', 'icon': Icons.volume_off_rounded, 'premium': false},
+    {'name': 'Ruido blanco', 'icon': Icons.waves_rounded, 'premium': false},
+    {'name': 'Ruido marrón', 'icon': Icons.water_rounded, 'premium': false},
+    {'name': 'Ruido rosa', 'icon': Icons.grain_rounded, 'premium': false},
   ];
 
-  // Sonidos PREMIUM (requieren compra individual)
   final List<Map<String, dynamic>> _premiumSounds = [
-    {'name': 'Lluvia', 'icon': Icons.cloud, 'premium': true, 'itemId': 'sound_rain', 'price': 75},
-    {'name': 'Bosque', 'icon': Icons.park, 'premium': true, 'itemId': 'sound_forest', 'price': 75},
-    {'name': 'Café', 'icon': Icons.coffee, 'premium': true, 'itemId': 'sound_cafe', 'price': 75},
-    {'name': 'Biblioteca', 'icon': Icons.menu_book, 'premium': true, 'itemId': 'sound_library', 'price': 75},
+    {
+      'name': 'Lluvia',
+      'icon': Icons.water_drop_outlined,
+      'premium': true,
+      'itemId': 'sound_rain',
+      'price': 75,
+    },
+    {
+      'name': 'Bosque',
+      'icon': Icons.park_outlined,
+      'premium': true,
+      'itemId': 'sound_forest',
+      'price': 75,
+    },
+    {
+      'name': 'Café',
+      'icon': Icons.local_cafe_outlined,
+      'premium': true,
+      'itemId': 'sound_cafe',
+      'price': 75,
+    },
+    {
+      'name': 'Biblioteca',
+      'icon': Icons.menu_book_rounded,
+      'premium': true,
+      'itemId': 'sound_library',
+      'price': 75,
+    },
   ];
-
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // LIFECYCLE
-  // ═════════════════════════════════════════════════════════════════════════════════
 
   @override
   void initState() {
     super.initState();
-    // Cargar valores actuales del provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final settings = Provider.of<SettingsProvider>(context, listen: false);
       setState(() {
@@ -77,19 +76,10 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
 
   @override
   void dispose() {
-    // Detener cualquier previsualización al salir
-    // NO llamar setState() en dispose porque el widget ya está siendo destruido
     AudioService.stop();
     super.dispose();
   }
 
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // MÉTODOS
-  // ═════════════════════════════════════════════════════════════════════════════════
-
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Previsualizar sonido (5 segundos)                                           │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _previewSound(String soundName) async {
     if (soundName == 'Ninguno') {
       _stopPreview();
@@ -100,24 +90,22 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
       _isPreviewPlaying = true;
     });
 
-    // Reproducir preview de 5 segundos
     final success = await AudioService.playPreview(
       soundName,
       volume: _soundVolume,
       durationSeconds: 5,
     );
 
-    if (!success) {
+    if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('No se pudo reproducir el sonido'),
-          backgroundColor: context.colors.destructive,
+          backgroundColor: AppColors.destructive,
         ),
       );
     }
 
-    // Actualizar estado después de 5 segundos
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {
           _isPreviewPlaying = false;
@@ -126,23 +114,16 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
     });
   }
 
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Detener previsualización                                                     │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _stopPreview() {
-    AudioService.stopImmediately(); // Detener sin fade out
+    AudioService.stopImmediately();
     setState(() {
       _isPreviewPlaying = false;
     });
   }
 
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Guardar cambios                                                              │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _saveChanges() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
-    // Verificar si el timer está corriendo
     if (settings.isTimerRunning) {
       _showTimerRunningWarning();
     } else {
@@ -151,33 +132,30 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
     }
   }
 
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Aplicar cambios al provider                                                  │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _applyChanges() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     settings.setSelectedSound(_selectedSound);
     settings.setSoundVolume(_soundVolume);
 
-    _stopPreview(); // Detener previsualización
+    _stopPreview();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ Configuración de sonido guardada'),
+      const SnackBar(
+        content: Text('Configuración de sonido guardada'),
         backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Mostrar diálogo de advertencia: timer corriendo                              │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _showTimerRunningWarning() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: Text(
-          '⚠️ Timer en ejecución',
+          'Timer en ejecución',
           textAlign: TextAlign.center,
           style: AppTypography.heading2,
         ),
@@ -190,7 +168,10 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancelar'),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: context.colors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
@@ -199,45 +180,70 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.colors.accent,
+              backgroundColor: AppColors.destructive,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            child: Text('Guardar'),
+            child: const Text('Guardar'),
           ),
         ],
       ),
     );
   }
 
-  // ┌───────────────────────────────────────────────────────────────────────────────┐
-  // │ Aplicar cambios y resetear timer                                             │
-  // └───────────────────────────────────────────────────────────────────────────────┘
   void _applyChangesAndReset() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     _applyChanges();
-    settings.onTimerReset?.call(); // Resetear timer
+    settings.onTimerReset?.call();
   }
-
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // WIDGETS
-  // ═════════════════════════════════════════════════════════════════════════════════
 
   Widget _buildSoundCard(Map<String, dynamic> sound, bool isLocked) {
     final isSelected = _selectedSound == sound['name'];
     final price = sound['price'] as int?;
 
-    return Card(
-      margin: EdgeInsets.only(bottom: AppConstants.paddingSmall),
-      color: isSelected
-          ? context.colors.accent.withOpacity(0.1)
-          : context.colors.cardBackground,
-      child: ListTile(
-        leading: Icon(
-          sound['icon'] as IconData,
-          color: isLocked
-              ? context.colors.textSecondary.withOpacity(0.5)
-              : isSelected
-                  ? context.colors.accent
-                  : context.colors.textSecondary,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primarySoft : context.colors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected ? AppColors.primary : AppColors.border,
+          width: isSelected ? 1.5 : 1.0,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(15, 23, 42, 0.03),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : isLocked
+                ? const Color(0xFFF1F5F9)
+                : AppColors.primarySoft,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            sound['icon'] as IconData,
+            color: isLocked
+                ? AppColors.mutedForeground
+                : AppColors.primary,
+            size: 20,
+          ),
         ),
         title: Row(
           children: [
@@ -246,31 +252,35 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
                 sound['name'] as String,
                 style: AppTypography.bodyMedium.copyWith(
                   color: isLocked
-                      ? context.colors.textSecondary
+                      ? AppColors.mutedForeground
                       : isSelected
-                          ? context.colors.accent
-                          : context.colors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ? AppColors.primary
+                      : context.colors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
             ),
             if (isLocked && price != null) ...[
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: context.colors.textSecondary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.lock_outline, size: 12, color: context.colors.textSecondary),
-                    SizedBox(width: 4),
+                    const Icon(
+                      Icons.lock_outline_rounded,
+                      size: 13,
+                      color: AppColors.mutedForeground,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      '$price',
+                      '$price pts',
                       style: AppTypography.bodySmall.copyWith(
-                        color: context.colors.textSecondary,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.mutedForeground,
+                        fontWeight: FontWeight.w600,
                         fontSize: 11,
                       ),
                     ),
@@ -281,7 +291,11 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
           ],
         ),
         trailing: isSelected
-            ? Icon(Icons.check_circle, color: context.colors.accent)
+            ? const Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.primary,
+                size: 22,
+              )
             : null,
         onTap: () {
           if (isLocked) {
@@ -290,10 +304,10 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
             setState(() {
               _selectedSound = sound['name'] as String;
             });
-            // Reproducir preview automáticamente al seleccionar
             _previewSound(sound['name'] as String);
           }
         },
+      ),
       ),
     );
   }
@@ -302,16 +316,31 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: Text(
-          '🔒 Sonido Bloqueado',
+          'Sonido Bloqueado',
           style: AppTypography.heading2,
           textAlign: TextAlign.center,
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.music_note, size: 64, color: context.colors.accent),
-            SizedBox(height: 16),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.music_note_rounded,
+                size: 32,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               '$soundName está bloqueado.',
               style: AppTypography.bodyLarge.copyWith(
@@ -319,7 +348,7 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Desbloquea este sonido en la tienda por $price puntos.',
               style: AppTypography.bodyMedium,
@@ -327,19 +356,24 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
             ),
           ],
         ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cerrar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            ),
+            child: const Text('Entendido'),
           ),
         ],
       ),
     );
   }
-
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // BUILD
-  // ═════════════════════════════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -348,111 +382,168 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
     return Scaffold(
       backgroundColor: context.colors.appBackground,
       appBar: AppBar(
-        title: Text('Sonidos ambientales'),
+        title: Text(
+          'Sonidos ambientales',
+          style: AppTypography.heading2,
+        ),
         backgroundColor: context.colors.cardBackground,
         elevation: 0,
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: AppColors.border,
+            height: 1.0,
+          ),
+        ),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(AppConstants.paddingMedium),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+                vertical: AppConstants.paddingMedium,
+              ),
               children: [
-                // ═════════════════════════════════════════════════════════════════
-                // SONIDOS GRATUITOS
-                // ═════════════════════════════════════════════════════════════════
+                // Sonidos Gratuitos
                 Text(
                   'Sonidos Gratuitos',
-                  style: AppTypography.heading2.copyWith(fontSize: 18),
+                  style: AppTypography.heading3.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                SizedBox(height: AppConstants.paddingSmall),
+                const SizedBox(height: 8),
+                ..._freeSounds.map((sound) => _buildSoundCard(sound, false)),
 
-                ..._freeSounds.map((sound) {
-                  return _buildSoundCard(sound, false);
-                }).toList(),
+                const SizedBox(height: AppConstants.paddingLarge),
 
-                SizedBox(height: AppConstants.paddingLarge),
-
-                // ═════════════════════════════════════════════════════════════════
-                // SONIDOS PREMIUM
-                // ═════════════════════════════════════════════════════════════════
+                // Sonidos Premium
                 Text(
                   'Sonidos Premium',
-                  style: AppTypography.heading2.copyWith(fontSize: 18),
+                  style: AppTypography.heading3.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                SizedBox(height: AppConstants.paddingSmall),
-
+                const SizedBox(height: 8),
                 ..._premiumSounds.map((sound) {
-                  // Verificar si este sonido específico está desbloqueado
                   final itemId = sound['itemId'] as String;
                   final isUnlocked = rewards.isItemPurchased(itemId);
                   return _buildSoundCard(sound, !isUnlocked);
-                }).toList(),
+                }),
 
-                SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: AppConstants.paddingLarge),
 
-                // ═════════════════════════════════════════════════════════════════
-                // CONTROL DE VOLUMEN
-                // ═════════════════════════════════════════════════════════════════
-                Card(
-                  color: context.colors.cardBackground,
-                  child: Padding(
-                    padding: EdgeInsets.all(AppConstants.paddingMedium),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Volumen',
-                          style: AppTypography.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
+                // Control de Volumen
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: context.colors.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 1.0),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(15, 23, 42, 0.03),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Volumen del sonido',
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: context.colors.textPrimary,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: AppConstants.paddingSmall),
-                        Row(
-                          children: [
-                            Icon(Icons.volume_down, color: context.colors.textSecondary),
-                            Expanded(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySoft,
+                              borderRadius: BorderRadius.circular(9999),
+                            ),
+                            child: Text(
+                              '${(_soundVolume * 100).toInt()}%',
+                              style: AppTypography.bodySmall.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.volume_down_rounded,
+                            color: AppColors.mutedForeground,
+                            size: 20,
+                          ),
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderThemeData(
+                                activeTrackColor: AppColors.primary,
+                                inactiveTrackColor: AppColors.border,
+                                thumbColor: AppColors.primary,
+                                overlayColor: AppColors.primary.withValues(
+                                  alpha: 0.15,
+                                ),
+                                trackHeight: 4,
+                              ),
                               child: Slider(
                                 value: _soundVolume,
                                 min: 0.0,
                                 max: 1.0,
                                 divisions: 10,
-                                label: '${(_soundVolume * 100).toInt()}%',
-                                activeColor: context.colors.accent,
                                 onChanged: (value) {
                                   setState(() {
                                     _soundVolume = value;
                                   });
-                                  // Si hay una previsualización, actualizar volumen
                                   if (_isPreviewPlaying) {
                                     AudioService.setVolume(value);
                                   }
                                 },
                               ),
                             ),
-                            Icon(Icons.volume_up, color: context.colors.textSecondary),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                          const Icon(
+                            Icons.volume_up_rounded,
+                            color: AppColors.mutedForeground,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-
-                SizedBox(height: AppConstants.paddingMedium),
+                const SizedBox(height: AppConstants.paddingLarge),
               ],
             ),
           ),
 
-          // ═════════════════════════════════════════════════════════════════════
-          // BOTÓN GUARDAR (fijo en la parte inferior)
-          // ═════════════════════════════════════════════════════════════════════
+          // Botón Guardar cambios tipo Pill de Stitch (52px)
           Container(
-            padding: EdgeInsets.all(AppConstants.paddingMedium),
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
             decoration: BoxDecoration(
               color: context.colors.cardBackground,
-              boxShadow: [
+              border: const Border(
+                top: BorderSide(color: AppColors.border, width: 1.0),
+              ),
+              boxShadow: const [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Color.fromRGBO(15, 23, 42, 0.03),
                   blurRadius: 10,
                   offset: Offset(0, -2),
                 ),
@@ -461,21 +552,23 @@ class _SoundSettingsScreenState extends State<SoundSettingsScreen> {
             child: SafeArea(
               child: SizedBox(
                 width: double.infinity,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: _saveChanges,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                      borderRadius: BorderRadius.circular(9999),
                     ),
+                    elevation: 0,
                   ),
                   child: Text(
                     'Guardar cambios',
-                    style: AppTypography.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.button.copyWith(
                       color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

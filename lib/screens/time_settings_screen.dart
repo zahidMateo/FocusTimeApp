@@ -1,26 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════════
-// TIME SETTINGS SCREEN - PANTALLA DEDICADA PARA CONFIGURAR TIEMPOS
-// ═══════════════════════════════════════════════════════════════════════════════════
-//
-// Esta pantalla permite configurar los 3 tiempos del Pomodoro:
-// - Tiempo de trabajo (focus)
-// - Descanso corto
-// - Descanso largo
-//
-// VENTAJAS DE ESTA ARQUITECTURA:
-// 1. El usuario puede mover todos los sliders libremente sin interrupciones
-// 2. Solo se valida UNA VEZ cuando presiona "Guardar cambios"
-// 3. Si el timer está corriendo, aparece UN SOLO diálogo
-// 4. Si acepta, se aplican TODOS los cambios de una vez
-// 5. Código mucho más simple y limpio
-//
+// TIME SETTINGS SCREEN - CONFIGURAR TIEMPOS (STITCH FOCUS FLOW)
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 class TimeSettingsScreen extends StatefulWidget {
@@ -31,8 +18,6 @@ class TimeSettingsScreen extends StatefulWidget {
 }
 
 class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
-  // Variables temporales para los valores de los sliders
-  // Estos NO se guardan en el provider hasta que el usuario presione "Guardar"
   late double _tempFocusDuration;
   late double _tempShortBreakDuration;
   late double _tempLongBreakDuration;
@@ -41,7 +26,6 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // Inicializar con los valores actuales del provider
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     _tempFocusDuration = settings.focusDuration;
     _tempShortBreakDuration = settings.shortBreakDuration;
@@ -49,43 +33,35 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
     _tempPomodorosBeforeLongBreak = settings.pomodorosBeforeLongBreak;
   }
 
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // GUARDAR CAMBIOS - Aplica todos los cambios de una vez
-  // ═════════════════════════════════════════════════════════════════════════════════
   void _saveChanges() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
-
-    // Siempre aplicar los cambios
     _applyChanges();
 
-    // Si el timer está corriendo, mostrar advertencia y resetear
     if (settings.isTimerRunning) {
       if (settings.onTimerReset != null) {
         settings.onTimerReset!();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Configuración guardada. Timer reiniciado.'),
-          backgroundColor: context.colors.accent,
+          backgroundColor: AppColors.primary,
           duration: Duration(seconds: 2),
         ),
       );
     } else {
-      // Si no está corriendo, solo confirmar guardado
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✅ Configuración guardada exitosamente'),
-          backgroundColor: context.colors.accent,
+        const SnackBar(
+          content: Text('Configuración guardada exitosamente'),
+          backgroundColor: AppColors.primary,
           duration: Duration(seconds: 2),
         ),
       );
     }
 
-    Navigator.of(context).pop(); // Volver a Settings
+    Navigator.of(context).pop();
   }
 
-  // Aplicar los cambios al provider
   void _applyChanges() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     settings.setFocusDuration(_tempFocusDuration);
@@ -94,35 +70,49 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
     settings.setPomodorosBeforeLongBreak(_tempPomodorosBeforeLongBreak);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.colors.cardBackground,
+      backgroundColor: context.colors.appBackground,
       appBar: AppBar(
-        title: Text('Configurar tiempos'),
+        title: Text(
+          'Configurar tiempos',
+          style: AppTypography.heading2,
+        ),
+        backgroundColor: context.colors.cardBackground,
+        elevation: 0,
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: AppColors.border,
+            height: 1.0,
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // ─── Sliders (sin validación, se pueden mover libremente) ───
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(AppConstants.paddingLarge),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+                vertical: AppConstants.paddingMedium,
+              ),
               children: [
-                // Descripción
                 Text(
-                  'Ajusta la duración de cada ciclo Pomodoro',
+                  'Ajusta la duración de cada ciclo Pomodoro y descansos',
                   style: AppTypography.bodyMedium.copyWith(
                     color: context.colors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: AppConstants.paddingXLarge),
+                const SizedBox(height: AppConstants.paddingLarge),
 
                 // Slider 1: Tiempo de trabajo
-                _buildSimpleSlider(
+                _buildSliderCard(
+                  icon: Icons.timer_outlined,
                   label: 'Tiempo de trabajo',
+                  valueText: '${_tempFocusDuration.toInt()} min',
                   value: _tempFocusDuration,
                   min: 1,
                   max: 60,
@@ -133,11 +123,13 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                     });
                   },
                 ),
-                SizedBox(height: AppConstants.paddingXLarge),
+                const SizedBox(height: AppConstants.paddingMedium),
 
                 // Slider 2: Descanso corto
-                _buildSimpleSlider(
+                _buildSliderCard(
+                  icon: Icons.coffee_outlined,
                   label: 'Descanso corto',
+                  valueText: '${_tempShortBreakDuration.toInt()} min',
                   value: _tempShortBreakDuration,
                   min: 1,
                   max: 15,
@@ -148,11 +140,13 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                     });
                   },
                 ),
-                SizedBox(height: AppConstants.paddingXLarge),
+                const SizedBox(height: AppConstants.paddingMedium),
 
                 // Slider 3: Descanso largo
-                _buildSimpleSlider(
+                _buildSliderCard(
+                  icon: Icons.hotel_outlined,
                   label: 'Descanso largo',
+                  valueText: '${_tempLongBreakDuration.toInt()} min',
                   value: _tempLongBreakDuration,
                   min: 5,
                   max: 30,
@@ -163,55 +157,65 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                     });
                   },
                 ),
-                SizedBox(height: AppConstants.paddingXLarge),
+                const SizedBox(height: AppConstants.paddingMedium),
 
                 // Slider 4: Ciclos antes del descanso largo
-                _buildCyclesSlider(
-                  label: 'Ciclos',
-                  value: _tempPomodorosBeforeLongBreak,
+                _buildSliderCard(
+                  icon: Icons.repeat_rounded,
+                  label: 'Ciclos para descanso largo',
+                  valueText: '$_tempPomodorosBeforeLongBreak ciclos',
+                  value: _tempPomodorosBeforeLongBreak.toDouble(),
                   min: 2,
                   max: 10,
                   divisions: 8,
                   onChanged: (value) {
                     setState(() {
-                      _tempPomodorosBeforeLongBreak = value;
+                      _tempPomodorosBeforeLongBreak = value.toInt();
                     });
                   },
                 ),
+                const SizedBox(height: AppConstants.paddingLarge),
               ],
             ),
           ),
 
-          // ─── Botón Guardar (al final de la pantalla) ───
+          // Botón Guardar cambios tipo Pill de Stitch (52px de alto)
           Container(
-            padding: EdgeInsets.all(AppConstants.paddingLarge),
+            padding: const EdgeInsets.all(AppConstants.paddingMedium),
             decoration: BoxDecoration(
               color: context.colors.cardBackground,
-              boxShadow: [
+              border: const Border(
+                top: BorderSide(color: AppColors.border, width: 1.0),
+              ),
+              boxShadow: const [
                 BoxShadow(
-                  color: context.colors.borderColor,
-                  blurRadius: 4,
+                  color: Color.fromRGBO(15, 23, 42, 0.03),
+                  blurRadius: 10,
                   offset: Offset(0, -2),
                 ),
               ],
             ),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _saveChanges,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.colors.accent,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: AppConstants.paddingMedium,
+            child: SafeArea(
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: _saveChanges,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(9999),
+                    ),
+                    elevation: 0,
                   ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Guardar cambios',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  child: Text(
+                    'Guardar cambios',
+                    style: AppTypography.button.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -222,139 +226,99 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
     );
   }
 
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // SLIDER SIMPLE - Sin validación, solo cambia el estado local
-  // ═════════════════════════════════════════════════════════════════════════════════
-  Widget _buildSimpleSlider({
+  Widget _buildSliderCard({
+    required IconData icon,
     required String label,
+    required String valueText,
     required double value,
     required double min,
     required double max,
     required int divisions,
     required ValueChanged<double> onChanged,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Título y valor
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.colors.textPrimary,
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: context.colors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(15, 23, 42, 0.03),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: AppTypography.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: context.colors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppConstants.paddingMedium,
-                vertical: AppConstants.paddingSmall,
-              ),
-              decoration: BoxDecoration(
-                color: context.colors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${value.toInt()} min',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: context.colors.accent,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+                child: Text(
+                  valueText,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.border,
+              thumbColor: AppColors.primary,
+              overlayColor: AppColors.primary.withValues(alpha: 0.15),
+              trackHeight: 4,
             ),
-          ],
-        ),
-        SizedBox(height: AppConstants.paddingSmall),
-
-        // Slider
-        SliderTheme(
-          data: SliderThemeData(
-            activeTrackColor: context.colors.accent,
-            inactiveTrackColor: context.colors.borderColor.withOpacity(0.3),
-            thumbColor: context.colors.accent,
-            overlayColor: context.colors.accent.withOpacity(0.2),
-            trackHeight: 4,
-          ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            onChanged: onChanged, // Simple, sin validación
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ═════════════════════════════════════════════════════════════════════════════════
-  // SLIDER PARA CICLOS - Similar al slider simple pero con valores int
-  // ═════════════════════════════════════════════════════════════════════════════════
-  Widget _buildCyclesSlider({
-    required String label,
-    required int value,
-    required int min,
-    required int max,
-    required int divisions,
-    required ValueChanged<int> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Título y valor
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.colors.textPrimary,
-              ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
             ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppConstants.paddingMedium,
-                vertical: AppConstants.paddingSmall,
-              ),
-              decoration: BoxDecoration(
-                color: context.colors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$value ciclos',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: context.colors.accent,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: AppConstants.paddingSmall),
-
-        // Slider
-        SliderTheme(
-          data: SliderThemeData(
-            activeTrackColor: context.colors.accent,
-            inactiveTrackColor: context.colors.borderColor.withOpacity(0.3),
-            thumbColor: context.colors.accent,
-            overlayColor: context.colors.accent.withOpacity(0.2),
-            trackHeight: 4,
           ),
-          child: Slider(
-            value: value.toDouble(),
-            min: min.toDouble(),
-            max: max.toDouble(),
-            divisions: divisions,
-            onChanged: (double newValue) {
-              onChanged(newValue.toInt());
-            },
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

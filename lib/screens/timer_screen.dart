@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/global/app_theme.dart';
 import 'package:pomodoro_app/global/app_typography.dart';
 import 'package:pomodoro_app/global/app_constants.dart';
@@ -27,11 +28,7 @@ import 'package:pomodoro_app/services/focus_mode_service.dart';
 //
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-enum TimerMode {
-  pomodoro,
-  shortBreak,
-  longBreak,
-}
+enum TimerMode { pomodoro, shortBreak, longBreak }
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -93,7 +90,8 @@ class _TimerScreenState extends State<TimerScreen> {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
     setState(() {
       _remainingSeconds = settings.focusDurationInSeconds;
-      _initialSeconds = settings.focusDurationInSeconds; // Guardar valor inicial
+      _initialSeconds =
+          settings.focusDurationInSeconds; // Guardar valor inicial
     });
   }
 
@@ -103,6 +101,14 @@ class _TimerScreenState extends State<TimerScreen> {
     settings.onTimerReset = () {
       _resetTimer(); // Settings puede llamar esto cuando cambian configuraciones
     };
+  }
+
+  SettingsProvider? _settingsProvider;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
   }
 
   // ┌───────────────────────────────────────────────────────────────────────────────┐
@@ -115,8 +121,8 @@ class _TimerScreenState extends State<TimerScreen> {
     FocusModeService.disableFocusMode(); // Desactivar modo concentración
     AudioService.stopImmediately(); // Detener sonido sin fade out al cerrar
     NotificationService.cancelTimerNotification(); // Cancelar notificación persistente
-    final settings = Provider.of<SettingsProvider>(context, listen: false);
-    settings.onTimerReset = null; // Limpia el callback
+    _settingsProvider?.onTimerReset =
+        null; // Limpia el callback de forma segura
     super.dispose();
   }
 
@@ -143,7 +149,8 @@ class _TimerScreenState extends State<TimerScreen> {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
 
     setState(() {
-      _isRunning = !_isRunning; // Invierte el estado: true → false, false → true
+      _isRunning =
+          !_isRunning; // Invierte el estado: true → false, false → true
     });
 
     // Notificar al provider (para que Settings lo sepa)
@@ -191,7 +198,9 @@ class _TimerScreenState extends State<TimerScreen> {
             // Mostrar error si no se pudo reproducir
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('No se pudo reproducir "${settings.selectedSound}"'),
+                content: Text(
+                  'No se pudo reproducir "${settings.selectedSound}"',
+                ),
                 duration: Duration(seconds: 2),
               ),
             );
@@ -250,11 +259,24 @@ class _TimerScreenState extends State<TimerScreen> {
     // Cancelar notificación persistente
     NotificationService.cancelTimerNotification();
 
+    int resetSeconds;
+    switch (_currentMode) {
+      case TimerMode.pomodoro:
+        resetSeconds = settings.focusDurationInSeconds;
+        break;
+      case TimerMode.shortBreak:
+        resetSeconds = settings.shortBreakDurationInSeconds;
+        break;
+      case TimerMode.longBreak:
+        resetSeconds = settings.longBreakDurationInSeconds;
+        break;
+    }
+
     setState(() {
-      _remainingSeconds = settings.focusDurationInSeconds; // Tiempo completo
-      _initialSeconds = settings.focusDurationInSeconds; // Actualizar valor inicial
-      _isRunning = false; // Parado
-      _audioStarted = false; // Resetear flag de audio para próximo inicio
+      _remainingSeconds = resetSeconds;
+      _initialSeconds = resetSeconds;
+      _isRunning = false;
+      _audioStarted = false;
     });
 
     // Notificar al provider que el timer se detuvo
@@ -303,7 +325,9 @@ class _TimerScreenState extends State<TimerScreen> {
       // Registrar sesión completada en el sistema de recompensas
       final rewards = Provider.of<RewardsProvider>(context, listen: false);
       final completedMinutes = settings.focusDuration.toInt();
-      final newAchievements = await rewards.onSessionCompleted(completedMinutes);
+      final newAchievements = await rewards.onSessionCompleted(
+        completedMinutes,
+      );
 
       // Si se desbloquearon logros, mostrarlos
       if (newAchievements.isNotEmpty && mounted) {
@@ -388,24 +412,26 @@ class _TimerScreenState extends State<TimerScreen> {
 
     final quotes = [
       {
-        'text': 'El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.',
-        'author': '— Albert Schweitzer'
+        'text':
+            'El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.',
+        'author': '— Albert Schweitzer',
       },
       {
         'text': 'La única forma de hacer un gran trabajo es amar lo que haces.',
-        'author': '— Steve Jobs'
+        'author': '— Steve Jobs',
       },
       {
-        'text': 'El futuro pertenece a quienes creen en la belleza de sus sueños.',
-        'author': '— Eleanor Roosevelt'
+        'text':
+            'El futuro pertenece a quienes creen en la belleza de sus sueños.',
+        'author': '— Eleanor Roosevelt',
       },
       {
         'text': 'No cuentes los días, haz que los días cuenten.',
-        'author': '— Muhammad Ali'
+        'author': '— Muhammad Ali',
       },
       {
         'text': 'La disciplina es el puente entre las metas y el logro.',
-        'author': '— Jim Rohn'
+        'author': '— Jim Rohn',
       },
     ];
 
@@ -498,10 +524,10 @@ class _TimerScreenState extends State<TimerScreen> {
                 margin: EdgeInsets.only(bottom: 12),
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: context.colors.accent.withOpacity(0.1),
+                  color: context.colors.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: context.colors.accent.withOpacity(0.3),
+                    color: context.colors.accent.withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
@@ -524,7 +550,11 @@ class _TimerScreenState extends State<TimerScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.star, color: context.colors.accent, size: 20),
+                        Icon(
+                          Icons.star,
+                          color: context.colors.accent,
+                          size: 20,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           '+${achievement.points} puntos',
@@ -629,9 +659,10 @@ class _TimerScreenState extends State<TimerScreen> {
         }
 
         // Determinar si se debe bloquear la salida
-        final shouldBlock = settings.appLockMode &&
-                           _isRunning &&
-                           _currentMode == TimerMode.pomodoro;
+        final shouldBlock =
+            settings.appLockMode &&
+            _isRunning &&
+            _currentMode == TimerMode.pomodoro;
 
         return PopScope(
           canPop: !shouldBlock,
@@ -650,41 +681,94 @@ class _TimerScreenState extends State<TimerScreen> {
             }
           },
           child: Scaffold(
-            backgroundColor: context.colors.cardBackground,
+            backgroundColor: AppColors.background,
             body: SafeArea(
-              child: Column(
-                children: [
-                  // Indicador de modo concentración
-                  if (shouldBlock)
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        vertical: AppConstants.paddingSmall,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
                       ),
-                      color: context.colors.accent.withOpacity(0.2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.lock, size: 16, color: context.colors.accent),
-                          SizedBox(width: AppConstants.paddingSmall),
-                          Text(
-                            'Modo Concentración Activo',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: context.colors.accent,
-                              fontWeight: FontWeight.w600,
-                            ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppConstants.paddingMedium,
+                            vertical: AppConstants.paddingSmall,
                           ),
-                        ],
+                          child: Column(
+                            children: [
+                              // Indicador de modo concentración
+                              if (shouldBlock)
+                                Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.only(
+                                    bottom: AppConstants.paddingSmall,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppConstants.paddingSmall,
+                                    horizontal: AppConstants.paddingMedium,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primarySoft,
+                                    borderRadius: BorderRadius.circular(9999),
+                                    border: Border.all(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.lock,
+                                        size: 16,
+                                        color: AppColors.primary,
+                                      ),
+                                      const SizedBox(
+                                        width: AppConstants.paddingSmall,
+                                      ),
+                                      Text(
+                                        'Modo Concentración Activo',
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              const SizedBox(height: 8),
+
+                              // Selector de modo tipo Pills (Stitch Focus Flow)
+                              _buildModeSelector(),
+
+                              const Spacer(flex: 2),
+
+                              // Reloj circular con anillo de 8px
+                              _buildCircularTimer(),
+
+                              const Spacer(flex: 2),
+
+                              // Botones de control (Reset 48px, Play/Pause 64px Cobalt, Skip 48px)
+                              _buildControlButtons(),
+
+                              const SizedBox(height: 24),
+
+                              // Contador de ciclos Stitch
+                              _buildCycleCounter(),
+
+                              const Spacer(flex: 1),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  Spacer(flex: 2),
-                  _buildCircularTimer(),
-                  SizedBox(height: AppConstants.paddingXLarge * 2),
-                  _buildControlButtons(),
-                  SizedBox(height: AppConstants.paddingXLarge * 2),
-                  _buildCycleCounter(),
-                  Spacer(flex: 3),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -694,25 +778,99 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // CÍRCULO DE PROGRESO CON TIMER (RESPONSIVE)
+  // SELECTOR DE MODO EN PÍLDORAS (STITCH FOCUS FLOW)
+  // ═══════════════════════════════════════════════════════════
+
+  Widget _buildModeSelector() {
+    return Container(
+      padding: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(9999),
+        border: Border.all(color: AppColors.border, width: 1.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(15, 23, 42, 0.03),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildModePill(
+              title: 'Pomodoro',
+              mode: TimerMode.pomodoro,
+              onTap: () {
+                if (!_isRunning) _switchToPomodoro();
+              },
+            ),
+          ),
+          Expanded(
+            child: _buildModePill(
+              title: 'Descanso',
+              mode: TimerMode.shortBreak,
+              onTap: () {
+                if (!_isRunning) _switchToShortBreak();
+              },
+            ),
+          ),
+          Expanded(
+            child: _buildModePill(
+              title: 'Largo',
+              mode: TimerMode.longBreak,
+              onTap: () {
+                if (!_isRunning) _switchToLongBreak();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModePill({
+    required String title,
+    required TimerMode mode,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = _currentMode == mode;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primarySoft : Colors.transparent,
+          borderRadius: BorderRadius.circular(9999),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: AppTypography.label.copyWith(
+            color: isSelected ? AppColors.primary : AppColors.mutedForeground,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CÍRCULO DE PROGRESO CON TIMER (STITCH RING 8PX)
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildCircularTimer() {
-    // Obtener ancho de pantalla para hacer responsive
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Calcular tamaño del círculo basado en la pantalla
-    // Usar el 60% del ancho o 400px, lo que sea menor
-    double circleSize = (screenWidth * 0.6).clamp(240.0, 400.0);
-
-    // Si es una pantalla muy alta (tablet en vertical), ajustar según altura también
-    if (screenHeight > 800) {
-      circleSize = (screenHeight * 0.35).clamp(280.0, 450.0);
+    double circleSize = (screenWidth * 0.65).clamp(210.0, 320.0);
+    if (screenHeight < 680) {
+      circleSize = (screenHeight * 0.35).clamp(180.0, 240.0);
+    } else if (screenHeight > 800) {
+      circleSize = (screenHeight * 0.35).clamp(240.0, 340.0);
     }
-
-    // Calcular tamaño de fuente proporcionalmente
-    double fontSize = circleSize * 0.2; // 20% del círculo
 
     return SizedBox(
       width: circleSize,
@@ -720,38 +878,43 @@ class _TimerScreenState extends State<TimerScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Track inactivo (1.0 completo, borde sutil #E2E8F0 de 8px)
           SizedBox(
             width: circleSize,
             height: circleSize,
-            child: CircularProgressIndicator(
+            child: const CircularProgressIndicator(
               value: 1.0,
-              strokeWidth: circleSize * 0.03, // 3% del círculo
+              strokeWidth: 8.0,
               backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(context.colors.borderColor.withOpacity(0.3)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.border),
             ),
           ),
+          // Arco activo de progreso (#2563EB Cobalt Blue de 8px con puntas redondeadas)
           SizedBox(
             width: circleSize,
             height: circleSize,
             child: CircularProgressIndicator(
               value: _progress,
-              strokeWidth: circleSize * 0.03, // 3% del círculo
+              strokeWidth: 8.0,
               backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(context.colors.accent),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.primary,
+              ),
               strokeCap: StrokeCap.round,
             ),
           ),
+          // Contenedor central elevado
           Container(
-            width: circleSize - 20,
-            height: circleSize - 20,
+            width: circleSize - 36,
+            height: circleSize - 36,
             decoration: BoxDecoration(
-              color: context.colors.cardBackground,
+              color: AppColors.card,
               shape: BoxShape.circle,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: context.colors.accent.withOpacity(0.15),
-                  blurRadius: 20,
-                  offset: Offset(0, 8),
+                  color: Color.fromRGBO(15, 23, 42, 0.04),
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -760,20 +923,32 @@ class _TimerScreenState extends State<TimerScreen> {
               children: [
                 Text(
                   _formatTime(_remainingSeconds),
-                  style: AppTypography.timerDisplay.copyWith(
-                    color: context.colors.accent,
-                    fontSize: fontSize,
+                  style: AppTypography.displayTimer.copyWith(
+                    color: AppColors.foreground,
+                    fontSize: (circleSize * 0.22).clamp(48.0, 64.0),
                     height: 1.0,
+                    letterSpacing: -1.5,
                   ),
                 ),
-                SizedBox(height: AppConstants.paddingSmall),
-                Text(
-                  _getStatusText(),
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: context.colors.textSecondary,
-                    fontSize: fontSize * 0.25, // 25% del tiempo
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
                   ),
-                  textAlign: TextAlign.center,
+                  decoration: BoxDecoration(
+                    color: _isRunning ? AppColors.primarySoft : AppColors.muted,
+                    borderRadius: BorderRadius.circular(9999),
+                  ),
+                  child: Text(
+                    _getStatusText(),
+                    style: AppTypography.caption.copyWith(
+                      color: _isRunning
+                          ? AppColors.primary
+                          : AppColors.mutedForeground,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -795,113 +970,160 @@ class _TimerScreenState extends State<TimerScreen> {
         return 'Descanso largo';
       }
     } else {
-      return 'Pausado';
+      return 'En pausa';
     }
   }
 
   // ═══════════════════════════════════════════════════════════
-  // BOTONES DE CONTROL (RESPONSIVE)
+  // BOTONES DE CONTROL (STITCH FOCUS FLOW)
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildControlButtons() {
-    // Hacer los botones responsive también
-    final screenWidth = MediaQuery.of(context).size.width;
-    final buttonSize = (screenWidth * 0.15).clamp(60.0, 90.0);
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildCircleButton(
-          context: context,
-          icon: _isRunning ? Icons.pause : Icons.play_arrow,
-          backgroundColor: context.colors.cardBackground,
-          iconColor: context.colors.accent,
-          size: buttonSize,
-          onPressed: _toggleTimer,
-          hasBorder: true,
+        // Botón secundario de reinicio (48x48)
+        InkWell(
+          onTap: _resetTimer,
+          borderRadius: BorderRadius.circular(9999),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.muted,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border, width: 1.0),
+            ),
+            child: const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.mutedForeground,
+              size: 22,
+            ),
+          ),
         ),
-        SizedBox(width: AppConstants.paddingLarge),
-        _buildCircleButton(
-          context: context,
-          icon: Icons.refresh,
-          backgroundColor: context.colors.cardBackground,
-          iconColor: context.colors.accent,
-          size: buttonSize,
-          onPressed: _resetTimer,
-          hasBorder: true,
+        const SizedBox(width: AppConstants.paddingLarge),
+
+        // Botón principal Play / Pause (64x64, Cobalt Blue #2563EB)
+        InkWell(
+          onTap: _toggleTimer,
+          borderRadius: BorderRadius.circular(9999),
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              boxShadow: const [
+                BoxShadow(
+                  color: Color.fromRGBO(37, 99, 235, 0.35),
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(
+              _isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: Colors.white,
+              size: 34,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppConstants.paddingLarge),
+
+        // Botón secundario de saltar fase (48x48)
+        InkWell(
+          onTap: () {
+            if (_isRunning) {
+              _pauseTimer();
+            }
+            if (_currentMode == TimerMode.pomodoro) {
+              _showBreakDialog();
+            } else {
+              _switchToPomodoro();
+            }
+          },
+          borderRadius: BorderRadius.circular(9999),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.muted,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border, width: 1.0),
+            ),
+            child: const Icon(
+              Icons.skip_next_rounded,
+              color: AppColors.mutedForeground,
+              size: 24,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildCircleButton({
-    required BuildContext context,
-    required IconData icon,
-    required Color backgroundColor,
-    required Color iconColor,
-    required double size,
-    required VoidCallback onPressed,
-    bool hasBorder = false,
-  }) {
-    return Material(
-      color: backgroundColor,
-      shape: CircleBorder(
-        side: hasBorder
-            ? BorderSide(color: context.colors.borderColor, width: 2)
-            : BorderSide.none,
-      ),
-      elevation: hasBorder ? 4 : 8,
-      shadowColor: context.colors.accent.withOpacity(0.2),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: CircleBorder(),
-        child: Container(
-          width: size,
-          height: size,
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: size * 0.45,
-          ),
-        ),
-      ),
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════
-  // CONTADOR DE CICLOS
+  // CONTADOR DE CICLOS (STITCH TARJETA CON INDICADORES)
   // ═══════════════════════════════════════════════════════════
 
   Widget _buildCycleCounter() {
     final settings = Provider.of<SettingsProvider>(context, listen: false);
+    final total = settings.pomodorosBeforeLongBreak;
+
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: AppConstants.paddingLarge,
-        vertical: AppConstants.paddingMedium,
+        vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: context.colors.cardBackground,
-        borderRadius: BorderRadius.circular(AppConstants.borderRadius),
-        border: Border.all(
-          color: context.colors.borderColor,
-          width: 1,
-        ),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(15, 23, 42, 0.03),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const Icon(
+            Icons.all_inclusive_rounded,
+            size: 18,
+            color: AppColors.primary,
+          ),
+          const SizedBox(width: 8),
           Text(
-            'Ciclos completados: ',
-            style: AppTypography.bodyMedium.copyWith(
-              color: context.colors.textSecondary,
+            'Ciclo: ',
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.mutedForeground,
             ),
           ),
           Text(
-            '$_completedCycles de ${settings.pomodorosBeforeLongBreak}',
-            style: AppTypography.bodyMedium.copyWith(
-              color: context.colors.accent,
+            '$_completedCycles de $total',
+            style: AppTypography.label.copyWith(
+              color: AppColors.foreground,
               fontWeight: FontWeight.w600,
             ),
+          ),
+          const SizedBox(width: 12),
+          // Indicadores visuales de puntos Stitch
+          Row(
+            children: List.generate(total, (i) {
+              final isDone = i < _completedCycles;
+              return Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  color: isDone ? AppColors.primary : AppColors.border,
+                  shape: BoxShape.circle,
+                ),
+              );
+            }),
           ),
         ],
       ),

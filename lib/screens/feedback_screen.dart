@@ -50,7 +50,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     // Preparar el email
     final String emailAddress = 'mmales76@gmail.com';
     final String subject = 'Comentario - Pomodoro App ($_selectedCategory)';
-    final String body = '''
+    final String body =
+        '''
 Categoría: $_selectedCategory
 
 Comentario:
@@ -60,7 +61,8 @@ ${_feedbackController.text.trim()}
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: emailAddress,
-      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
+      query:
+          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
     try {
@@ -115,7 +117,7 @@ ${_feedbackController.text.trim()}
           // DESCRIPCIÓN
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: context.colors.accent.withOpacity(0.1),
+            color: context.colors.accent.withValues(alpha: 0.1),
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Row(
@@ -147,7 +149,9 @@ ${_feedbackController.text.trim()}
           SizedBox(height: AppConstants.paddingSmall),
           Card(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingMedium,
+              ),
               child: DropdownButton<String>(
                 value: _selectedCategory,
                 isExpanded: true,
@@ -206,7 +210,9 @@ ${_feedbackController.text.trim()}
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppConstants.borderRadius),
+                  borderRadius: BorderRadius.circular(
+                    AppConstants.borderRadius,
+                  ),
                 ),
                 elevation: 2,
               ),

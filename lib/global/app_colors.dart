@@ -33,55 +33,62 @@ class AppColors {
   // COLORES BASE (Siguiendo Material Design 3)
   // ─────────────────────────────────────────────────────────────────────────────────
 
-  // background - Fondo principal de la aplicación
-  static const Color background = Color(0xFFFAFAFD);
+  // background - Fondo principal de la aplicación (Focus Flow Canvas)
+  static const Color background = Color(0xFFFAF8FF);
+  static const Color canvasAlt = Color(0xFFF8FAFC);
 
-  // foreground - Color del texto principal (oscuro para contrastar con background)
-  static const Color foreground = Color(0xFF52526B);
+  // foreground - Color del texto principal (Deep Slate)
+  static const Color foreground = Color(0xFF0F172A);
 
   // card - Color de fondo de las tarjetas (Cards)
   // cardForeground - Color del texto dentro de las tarjetas
   static const Color card = Color(0xFFFFFFFF);
-  static const Color cardForeground = Color(0xFF52526B);
+  static const Color cardForeground = Color(0xFF0F172A);
 
   // popover - Color de fondo para menús emergentes y dropdowns
-  // popoverForeground - Color del texto en los menús emergentes
   static const Color popover = Color(0xFFFFFFFF);
-  static const Color popoverForeground = Color(0xFF52526B);
+  static const Color popoverForeground = Color(0xFF0F172A);
 
-  // primary - Color principal de la app (Lavanda)
+  // primary - Color principal de la app (Cobalt Focus Blue)
   // primaryForeground - Color del texto sobre el color primary
-  static const Color primary = Color(0xFFAEA8D6);
-  static const Color primaryForeground = Color(0xFFFAFAFD);
+  static const Color primary = Color(0xFF2563EB);
+  static const Color primaryForeground = Color(0xFFFFFFFF);
+  static const Color primarySoft = Color(0xFFEFF6FF);
 
-  // secondary - Color secundario (Mint/Verde menta)
+  // secondary - Color secundario (Pastel Blue Tint)
   // secondaryForeground - Color del texto sobre el color secondary
-  static const Color secondary = Color(0xFFB8E3C8);
-  static const Color secondaryForeground = Color(0xFF52526B);
+  static const Color secondary = Color(0xFFEFF6FF);
+  static const Color secondaryForeground = Color(0xFF2563EB);
 
   // muted - Color apagado/deshabilitado (gris claro)
-  // mutedForeground - Color del texto secundario o deshabilitado
-  static const Color muted = Color(0xFFF2F2F7);
-  static const Color mutedForeground = Color(0xFF8B8B9E);
+  // mutedForeground - Color del texto secundario o deshabilitado (Mid Slate)
+  static const Color muted = Color(0xFFF1F5F9);
+  static const Color mutedForeground = Color(0xFF475569);
 
-  // accent - Color de acento para highlights (Sky/Azul cielo)
+  // accent - Color de acento para highlights (Cobalt Blue)
   // accentForeground - Color del texto sobre el color accent
-  static const Color accent = Color(0xFFB8DBE8);
-  static const Color accentForeground = Color(0xFF52526B);
+  static const Color accent = Color(0xFF2563EB);
+  static const Color accentForeground = Color(0xFFFFFFFF);
 
-  // destructive - Color para acciones destructivas (eliminar, resetear)
+  // destructive - Color para acciones destructivas (Crimson)
   // destructiveForeground - Color del texto sobre el color destructive
-  static const Color destructive = Color(0xFFE74C3C);
-  static const Color destructiveForeground = Color(0xFFFCFCFC);
+  static const Color destructive = Color(0xFFEF4444);
+  static const Color destructiveForeground = Color(0xFFFFFFFF);
+  static const Color destructiveSoft = Color(0xFFFEE2E2);
 
-  // border - Color de los bordes de elementos
-  static const Color border = Color(0xFFE8E8F0);
+  // success - Color para logros y metas cumplidas (Emerald)
+  static const Color success = Color(0xFF10B981);
+  static const Color successSoft = Color(0xFFECFDF5);
+
+  // border - Color de los bordes de elementos (1px subtle border)
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color borderMedium = Color(0xFFCBD5E1);
 
   // input - Color de fondo de campos de texto
-  static const Color input = Color(0xFFE8E8F0);
+  static const Color input = Color(0xFFF8FAFC);
 
-  // ring - Color del anillo de enfoque cuando un elemento está seleccionado
-  static const Color ring = Color(0xFFAEA8D6);
+  // ring - Color del anillo de enfoque
+  static const Color ring = Color(0xFF2563EB);
 
   // ─────────────────────────────────────────────────────────────────────────────────
   // COLORES PASTEL PERSONALIZADOS

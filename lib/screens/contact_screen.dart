@@ -37,7 +37,7 @@ class ContactScreen extends StatelessWidget {
           // DESCRIPCIÓN
           // ═══════════════════════════════════════════════════════════════════════════
           Card(
-            color: context.colors.accent.withOpacity(0.1),
+            color: context.colors.accent.withValues(alpha: 0.1),
             child: Padding(
               padding: EdgeInsets.all(AppConstants.paddingMedium),
               child: Row(
@@ -111,7 +111,11 @@ class ContactScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.access_time, color: context.colors.accent, size: 20),
+                      Icon(
+                        Icons.access_time,
+                        color: context.colors.accent,
+                        size: 20,
+                      ),
                       SizedBox(width: AppConstants.paddingSmall),
                       Text(
                         'Horario de atención',
@@ -148,7 +152,11 @@ class ContactScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.timer_outlined, color: context.colors.accent, size: 20),
+                      Icon(
+                        Icons.timer_outlined,
+                        color: context.colors.accent,
+                        size: 20,
+                      ),
                       SizedBox(width: AppConstants.paddingSmall),
                       Text(
                         'Tiempo de respuesta',
@@ -186,15 +194,14 @@ class ContactScreen extends StatelessWidget {
         leading: Icon(icon, color: context.colors.accent),
         title: Text(
           title,
-          style: AppTypography.bodyMedium.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(
-          subtitle,
-          style: AppTypography.bodySmall,
+        subtitle: Text(subtitle, style: AppTypography.bodySmall),
+        trailing: Icon(
+          Icons.open_in_new,
+          color: context.colors.textSecondary,
+          size: 20,
         ),
-        trailing: Icon(Icons.open_in_new, color: context.colors.textSecondary, size: 20),
         onTap: onTap,
       ),
     );

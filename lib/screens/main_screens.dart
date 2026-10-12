@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pomodoro_app/global/app_theme.dart';
-import 'package:pomodoro_app/global/app_typography.dart';
+import 'package:pomodoro_app/global/app_colors.dart';
 import 'package:pomodoro_app/screens/settings_screens.dart';
 import 'package:pomodoro_app/screens/timer_screen.dart';
-import 'package:pomodoro_app/screens/tasks_screen.dart';
 import 'package:pomodoro_app/screens/rewards_screen.dart';
+import 'package:pomodoro_app/screens/stats_screen.dart';
 
 // ═════════ ══════════════════════════════════════════════════════════════════════════
 // MAIN SCREEN - PANTALLA PRINCIPAL CON NAVEGACIÓN
@@ -65,11 +64,9 @@ class _MainScreenState extends State<MainScreen> {
   // Cuando cambias _currentIndex, se muestra una pantalla diferente
   final List<Widget> _screens = [
     TimerScreen(), // [0] Timer - Pantalla del temporizador
-    _PlaceholderScreen(
-        title: 'Estadísticas',
-        icon: Icons.bar_chart), // [1] Stats - Por implementar
+    const StatsScreen(), // [1] Stats - Estadísticas y métricas Stitch
     RewardsScreen(), // [2] Recompensas - Logros y Tienda
-    // TasksScreen(), // [3] Tareas - Gestión de tareas diarias (TEMPORALMENTE OCULTO)
+    // TasksScreen(), // Tareas - Gestión de tareas diarias (TEMPORALMENTE OCULTO)
     SettingsScreen(), // [3] Configuración - Pantalla de ajustes
   ];
 
@@ -100,103 +97,59 @@ class _MainScreenState extends State<MainScreen> {
       //   - TimerScreen mantiene _remainingSeconds, _isRunning, etc.
       //   - El Timer.periodic no se cancela al cambiar de pestaña
       //   - Vuelves y el timer sigue corriendo donde lo dejaste ✅
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
 
       // ───────────────────────────────────────────────────────────────────────────
-      // BOTTOM NAVIGATION BAR - Menú de navegación inferior
+      // BOTTOM NAVIGATION BAR - Menú de navegación inferior (Focus Flow)
       // ───────────────────────────────────────────────────────────────────────────
-      // Este es el menú con los 4 botones en la parte inferior de la pantalla
-      bottomNavigationBar: NavigationBar(
-        // ═══════════════════════════════════════════════════════════════════════
-        // CONFIGURACIÓN DEL NAVIGATION BAR
-        // ═══════════════════════════════════════════════════════════════════════
-
-        // selectedIndex: Índice del botón actualmente seleccionado
-        // Le dice al NavigationBar qué botón debe mostrarse como activo
-        selectedIndex: _currentIndex,
-
-        // onDestinationSelected: Callback que se ejecuta cuando tocas un botón
-        // Recibe el índice del botón que tocaste
-        onDestinationSelected: (int index) {
-          // setState() actualiza el estado Y reconstruye la UI
-          setState(() {
-            _currentIndex = index; // Cambia a la nueva pantalla
-          });
-          // Después de setState(), build() se ejecuta de nuevo
-          // y muestra _screens[index]
-        },
-
-        // height: Altura del menú de navegación en píxeles
-        height: 70,
-
-        // backgroundColor: Color de fondo del menú (respeta tema oscuro)
-        backgroundColor: Theme.of(context).colorScheme.surface,
-
-        // indicatorColor: Color del fondo del botón seleccionado
-        // withOpacity(0.2) = color primario con 20% de opacidad (muy suave)
-        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-
-        // labelBehavior: Controla cuándo mostrar las etiquetas (Timer, Stats, etc.)
-        // alwaysShow = las etiquetas siempre son visibles
-        // Otras opciones:
-        //   - alwaysHide = nunca mostrar etiquetas
-        //   - onlyShowSelected = solo mostrar la etiqueta del botón seleccionado
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-
-        // ═══════════════════════════════════════════════════════════════════════
-        // DESTINATIONS - Los botones del menú
-        // ═══════════════════════════════════════════════════════════════════════
-        // Cada NavigationDestination es un botón en el menú
-        // El orden aquí corresponde a los índices: [0, 1, 2, 3]
-        destinations: [
-          // ───────────────────────────────────────────────────────────────────
-          // [0] TIMER - Temporizador Pomodoro
-          // ───────────────────────────────────────────────────────────────────
-          NavigationDestination(
-            icon: Icon(Icons.timer_outlined), // Ícono cuando NO está seleccionado
-            selectedIcon: Icon(Icons.timer), // Ícono cuando SÍ está seleccionado
-            label: 'Timer', // Texto debajo del ícono
-          ),
-
-          // ───────────────────────────────────────────────────────────────────
-          // [1] ESTADÍSTICAS - Historial y métricas
-          // ───────────────────────────────────────────────────────────────────
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Stats',
-          ),
-
-          // ───────────────────────────────────────────────────────────────────
-          // [2] RECOMPENSAS - Logros y Tienda
-          // ───────────────────────────────────────────────────────────────────
-          NavigationDestination(
-            icon: Icon(Icons.card_giftcard_outlined),
-            selectedIcon: Icon(Icons.card_giftcard),
-            label: 'Premios',
-          ),
-
-          // ───────────────────────────────────────────────────────────────────
-          // [3] TAREAS - Lista de tareas pendientes (TEMPORALMENTE OCULTO)
-          // ───────────────────────────────────────────────────────────────────
-          // NavigationDestination(
-          //   icon: Icon(Icons.list_outlined),
-          //   selectedIcon: Icon(Icons.list),
-          //   label: 'Tareas',
-          // ),
-
-          // ───────────────────────────────────────────────────────────────────
-          // [3] CONFIGURACIÓN - Ajustes de la app
-          // ───────────────────────────────────────────────────────────────────
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Config',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.card,
+          border: Border(top: BorderSide(color: AppColors.border, width: 1.0)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (int index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          height: 68,
+          backgroundColor: Colors.transparent,
+          indicatorColor: AppColors.primarySoft,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.timer_outlined),
+              selectedIcon: Icon(Icons.timer_rounded, color: AppColors.primary),
+              label: 'Timer',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(
+                Icons.bar_chart_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Stats',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.emoji_events_outlined),
+              selectedIcon: Icon(
+                Icons.emoji_events_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Premios',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(
+                Icons.settings_rounded,
+                color: AppColors.primary,
+              ),
+              label: 'Config',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -222,60 +175,6 @@ class _MainScreenState extends State<MainScreen> {
 //     StatsScreen()
 //
 // ═══════════════════════════════════════════════════════════════════════════════════
-
-class _PlaceholderScreen extends StatelessWidget {
-  // ─── Propiedades requeridas ───
-  final String title; // Título a mostrar
-  final IconData icon; // Ícono a mostrar
-
-  const _PlaceholderScreen({
-    required this.title,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // ───────────────────────────────────────────────────────────────────────────
-      // APP BAR - Barra superior con el título
-      // ───────────────────────────────────────────────────────────────────────────
-      appBar: AppBar(
-        title: Text(title), // Muestra el título (Ej: "Estadísticas")
-      ),
-
-      // ───────────────────────────────────────────────────────────────────────────
-      // BODY - Contenido centrado con ícono y texto
-      // ───────────────────────────────────────────────────────────────────────────
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ─── Ícono grande ───
-            Icon(
-              icon,
-              size: 100, // Ícono de 100x100 píxeles
-              color: context.colors.primary, // Color primario (respeta tema)
-            ),
-            SizedBox(height: 20), // Espacio de 20 píxeles
-
-            // ─── Título ───
-            Text(
-              title,
-              style: AppTypography.heading1, // Estilo grande y bold
-            ),
-            SizedBox(height: 10), // Espacio de 10 píxeles
-
-            // ─── Descripción ───
-            Text(
-              'Pantalla de $title', // Ej: "Pantalla de Estadísticas"
-              style: AppTypography.bodySmall, // Estilo pequeño y gris
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════════
 // RESUMEN DEL FLUJO
