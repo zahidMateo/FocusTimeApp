@@ -66,6 +66,7 @@ class SettingsProvider extends ChangeNotifier {
   double _longBreakDuration =
       AppConstants.longBreakDuration.toDouble(); // 15 minutos
   int _pomodorosBeforeLongBreak = AppConstants.pomodorosBeforeLongBreak; // 4 ciclos
+  int _completedCycles = 0; // Ciclos completados en la ronda actual
 
   // ─────────────────────────────────────────────────────────────────────────────────
   // CONFIGURACIONES DE NOTIFICACIONES
@@ -131,6 +132,7 @@ class SettingsProvider extends ChangeNotifier {
   double get shortBreakDuration => _shortBreakDuration;
   double get longBreakDuration => _longBreakDuration;
   int get pomodorosBeforeLongBreak => _pomodorosBeforeLongBreak;
+  int get completedCycles => _completedCycles;
 
   // ─── Tiempos en segundos (para el timer) ───
   // Convertimos minutos a segundos multiplicando por 60
@@ -207,7 +209,28 @@ class SettingsProvider extends ChangeNotifier {
 
   void setPomodorosBeforeLongBreak(int value) {
     _pomodorosBeforeLongBreak = value;
+    if (_completedCycles > value) {
+      _completedCycles = value;
+    }
     _saveSettings(); // Guarda automáticamente
+    notifyListeners();
+  }
+
+  void incrementCompletedCycle() {
+    _completedCycles++;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void resetCompletedCycles() {
+    _completedCycles = 0;
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setCompletedCycles(int value) {
+    _completedCycles = value;
+    _saveSettings();
     notifyListeners();
   }
 
@@ -327,6 +350,7 @@ class SettingsProvider extends ChangeNotifier {
     _shortBreakDuration = AppConstants.shortBreakDuration.toDouble();
     _longBreakDuration = AppConstants.longBreakDuration.toDouble();
     _pomodorosBeforeLongBreak = AppConstants.pomodorosBeforeLongBreak;
+    _completedCycles = 0;
 
     // Notificaciones
     _notificationsEnabled = true;
@@ -373,6 +397,7 @@ class SettingsProvider extends ChangeNotifier {
           AppConstants.longBreakDuration.toDouble();
       _pomodorosBeforeLongBreak = prefs.getInt('pomodorosBeforeLongBreak') ??
           AppConstants.pomodorosBeforeLongBreak;
+      _completedCycles = prefs.getInt('completedCycles') ?? 0;
 
       // Cargar configuraciones de notificaciones
       _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
@@ -414,6 +439,7 @@ class SettingsProvider extends ChangeNotifier {
       await prefs.setDouble('shortBreakDuration', _shortBreakDuration);
       await prefs.setDouble('longBreakDuration', _longBreakDuration);
       await prefs.setInt('pomodorosBeforeLongBreak', _pomodorosBeforeLongBreak);
+      await prefs.setInt('completedCycles', _completedCycles);
 
       // Guardar notificaciones
       await prefs.setBool('notificationsEnabled', _notificationsEnabled);
