@@ -7,7 +7,7 @@ import 'package:pomodoro_app/global/app_constants.dart';
 import 'package:pomodoro_app/models/settings_provider.dart';
 import 'package:pomodoro_app/models/rewards_provider.dart';
 import 'package:pomodoro_app/screens/time_settings_screen.dart';
-import 'package:pomodoro_app/screens/sound_settings_screen.dart';
+import 'package:pomodoro_app/screens/music_and_sound_screen.dart';
 import 'package:pomodoro_app/screens/theme_settings_screen.dart';
 import 'package:pomodoro_app/screens/about_screen.dart';
 
@@ -265,6 +265,11 @@ class SettingsScreen extends StatelessWidget {
   // CARD DE SONIDO Y SONIDOS AMBIENTALES
   // ═════════════════════════════════════════════════════════════════════════════
   Widget _buildSoundCard(BuildContext context, SettingsProvider settings) {
+    final soundName = settings.selectedSound == 'Ninguno'
+        ? 'Lluvia de bosque'
+        : settings.selectedSound;
+    final volumePercent = (settings.soundVolume * 100).toInt();
+
     return _buildGroupCard(
       context: context,
       children: [
@@ -282,38 +287,38 @@ class SettingsScreen extends StatelessWidget {
             );
           },
         ),
-        if (settings.soundEnabled) ...[
-          _buildDivider(),
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
-            ),
-            leading: _buildLeadingIcon(Icons.music_note_outlined),
-            title: Text(
-              'Configurar sonido ambiental',
-              style: AppTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.colors.textPrimary,
-              ),
-            ),
-            subtitle: Text(
-              'Actual: ${settings.selectedSound}  •  Volumen: ${(settings.soundVolume * 100).toInt()}%',
-              style: AppTypography.bodySmall.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            trailing: const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.mutedForeground,
-            ),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SoundSettingsScreen()),
-              );
-            },
+        _buildDivider(),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 4,
           ),
-        ],
+          leading: _buildLeadingIcon(Icons.music_note_rounded),
+          title: Text(
+            'Música y Sonido',
+            style: AppTypography.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+              color: context.colors.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            'Actual: $soundName  •  Volumen: $volumePercent%',
+            style: AppTypography.bodySmall.copyWith(
+              color: context.colors.textSecondary,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.mutedForeground,
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const MusicAndSoundScreen(),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

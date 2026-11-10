@@ -125,10 +125,10 @@ class _TimeSettingsScreenState extends State<TimeSettingsScreen> {
                 ),
                 const SizedBox(height: AppConstants.paddingMedium),
 
-                // Slider 2: Descanso corto
+                // Slider 2: Descanso
                 _buildSliderCard(
                   icon: Icons.coffee_outlined,
-                  label: 'Descanso corto',
+                  label: 'Descanso',
                   valueText: '${_tempShortBreakDuration.toInt()} min',
                   value: _tempShortBreakDuration,
                   min: 1,
